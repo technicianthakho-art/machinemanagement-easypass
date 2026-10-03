@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <title>ระบบบริหารจัดการเครื่องจักรกล & Easy Pass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .card-hover-effect { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover-effect:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
+  </style>
+</head>
+<body class="text-slate-900 relative min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 pb-12 bg-slate-50">
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-3 pointer-events-none"></div>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
+    <div class="w-full px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-truck-monster text-slate-950 text-xl"></i>
+          </div>
+          <div>
+            <span class="font-black text-lg sm:text-xl tracking-tight text-white">
+              ระบบเครื่องจักรกล & Easy Pass
+            </span>
+            <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
+              v2.5 GitHub Edition
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2.5">
+          <button id="btnCreateRequest" onclick="openRequestModal()" class="hidden bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle text-base"></i> ยื่นคำขอ
+          </button>
+          <span id="userBadge" class="hidden sm:inline-block bg-slate-800 border border-slate-700 text-amber-400 text-xs px-3.5 py-1.5 rounded-full font-bold">
+            Guest
+          </span>
+          <button id="authBtn" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <div class="w-full px-4 sm:px-6 py-5">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex flex-wrap gap-2 mb-5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-fit">
+      <button onclick="switchTab('trackingTab')" id="btn-trackingTab" class="tab-btn bg-slate-900 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-amber-400"></i> 1. ติดตามแผนปฏิบัติงาน
+      </button>
+      <button onclick="switchTab('pendingTab')" id="btn-pendingTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
+        <i class="fa-solid fa-hourglass-half text-amber-500"></i> 2. คำขอรออนุมัติ
+        <span id="pendingBadgeTab" class="hidden ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">0</span>
+      </button>
+      <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
+        <i class="fa-solid fa-receipt text-emerald-600"></i> 3. สรุปผลส่งตัดเงิน Easy Pass
+        <span id="easyPassBadgeTab" class="hidden ml-1 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-chart-pie text-purple-600"></i> 4. Dashboard สรุปผล
+      </button>
+      <button onclick="switchTab('masterTab')" id="btn-masterTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-gears text-slate-500"></i> 5. บริหารจัดการข้อมูล
+      </button>
+    </div>
+
+    <!-- TAB 1: TRACKING -->
+    <div id="trackingTab" class="tab-content space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center flex-wrap gap-3">
+        <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-indigo-600"></span> ตารางติดตามแผนปฏิบัติงาน
+        </h2>
+        <div class="relative w-full sm:w-80">
+          <input type="text" id="searchTracking" onkeyup="filterTrackingTable()" placeholder="ค้นหารหัส, หมู่บ้าน, ช่าง, รถ..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-800 outline-none">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs sm:text-sm"></i>
+        </div>
+      </div>
+      <div id="jobsTableContainer" class="space-y-3"></div>
+    </div>
+
+    <!-- TAB 2: PENDING -->
+    <div id="pendingTab" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center flex-wrap gap-3">
+        <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-amber-500"></span> คำร้องขอรับบริการรอพิจารณาอนุมัติ
+        </h2>
+      </div>
+      <div id="pendingRequestsContainer" class="space-y-3"></div>
+    </div>
+
+    <!-- TAB 3: EASY PASS SUMMARY -->
+    <div id="summaryTab" class="tab-content hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span> สรุปผลงานจริง และประวัติการส่งตัดเงิน Easy Pass
+          </h2>
+          <div class="relative w-full sm:w-80">
+            <input type="text" id="searchEasyPass" onkeyup="filterEasyPassTable()" placeholder="ค้นหารหัส, หมู่บ้าน, TX ID..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-800 outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs sm:text-sm"></i>
+          </div>
+        </div>
+        <div id="summaryJobsContainer" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ANALYTICS DASHBOARD -->
+    <div id="analyticsTab" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl font-bold"><i class="fa-solid fa-truck-moving"></i></div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase">จำนวนโครงการทั้งหมด</div>
+            <div id="dashTotalJobs" class="text-3xl font-black text-slate-900 mt-0.5">0</div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold"><i class="fa-solid fa-gas-pump"></i></div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase">รวมการใช้น้ำมันเชื้อเพลิง</div>
+            <div id="dashTotalFuel" class="text-3xl font-black text-amber-600 mt-0.5">0 ลิตร</div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold"><i class="fa-solid fa-wallet"></i></div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase">งบตัดชำระ Easy Pass สะสม</div>
+            <div id="dashTotalAmount" class="text-3xl font-black text-emerald-600 mt-0.5">0 บาท</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-chart-column text-amber-500"></i> สรุปการใช้น้ำมัน (ลิตร)</h3>
+          <div class="h-72"><canvas id="fuelByMachineChart"></canvas></div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-chart-bar text-emerald-600"></i> สรุปงบ Easy Pass แยกตามหมู่บ้าน (บาท)</h3>
+          <div class="h-72"><canvas id="budgetByVillageChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: MASTER MANAGEMENT -->
+    <div id="masterTab" class="tab-content hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h3 class="text-base font-black text-slate-900"><i class="fa-solid fa-truck-monster text-amber-500"></i> บริหารเครื่องจักร & อุปกรณ์</h3>
+          <button onclick="toggleAddMachineForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-sm"><i class="fa-solid fa-plus"></i> เพิ่มเครื่องจักร</button>
+        </div>
+        <div id="addMachineForm" class="hidden bg-slate-50 p-5 rounded-2xl border space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <input type="text" id="newMachineName" placeholder="ชื่อเครื่องจักร *" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newMachineBrand" placeholder="ยี่ห้อ" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newMachinePlate" placeholder="ทะเบียน" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newMachineAssetNo" placeholder="เลขครุภัณฑ์" class="border p-2 rounded-xl bg-white">
+            <input type="number" id="newMachineFuel" placeholder="อัตราสิ้นเปลือง (ลิตร/วัน)" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newMachineEq" placeholder="อุปกรณ์เสริม" class="border p-2 rounded-xl bg-white">
+            <div class="col-span-1 sm:col-span-2"><input type="file" id="newMachineFileInput" accept="image/*" class="w-full text-xs border p-1 rounded-xl bg-white"></div>
+            <div class="col-span-1 sm:col-span-2 md:col-span-4"><div id="newMachineOperatorCheckboxes" class="border p-3 max-h-36 overflow-y-auto space-y-1 bg-white text-xs"></div></div>
+          </div>
+          <div class="flex justify-end space-x-2"><button onclick="toggleAddMachineForm()" class="px-3 py-1 text-xs text-slate-500">ยกเลิก</button><button onclick="addMasterMachine()" class="bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">บันทึก</button></div>
+        </div>
+        <div id="masterMachineGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h3 class="text-base font-black text-slate-900"><i class="fa-solid fa-user-gear text-blue-600"></i> จัดการผู้ขับ / ช่างผู้รับผิดชอบ</h3>
+          <button onclick="toggleAddOpForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm"><i class="fa-solid fa-user-plus"></i> เพิ่มช่างผู้ขับ</button>
+        </div>
+        <div id="addOpForm" class="hidden bg-slate-50 p-5 rounded-2xl border space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <input type="text" id="newOpName" placeholder="ชื่อ-นามสกุล *" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newOpPosition" placeholder="ตำแหน่ง" class="border p-2 rounded-xl bg-white">
+            <div><input type="file" id="newOpFileInput" accept="image/*" class="w-full text-xs border p-1 rounded-xl bg-white"></div>
+            <div class="col-span-1 sm:col-span-2"><div id="newOpMachineCheckboxes" class="border p-3 max-h-36 overflow-y-auto space-y-1 bg-white text-xs"></div></div>
+          </div>
+          <div class="flex justify-end space-x-2"><button onclick="toggleAddOpForm()" class="px-3 py-1 text-xs text-slate-500">ยกเลิก</button><button onclick="addMasterOperator()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-xs">บันทึก</button></div>
+        </div>
+        <div id="masterOperatorGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h3 class="text-base font-black text-slate-900"><i class="fa-solid fa-house-chimney text-emerald-600"></i> จัดการหมู่บ้าน (28 หมู่บ้าน)</h3>
+          <button onclick="toggleAddVillageForm()" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm"><i class="fa-solid fa-plus"></i> เพิ่มหมู่บ้าน</button>
+        </div>
+        <div id="addVillageForm" class="hidden bg-slate-50 p-5 rounded-2xl border space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <input type="text" id="newVillageNo" placeholder="หมู่ที่" class="border p-2 rounded-xl bg-white">
+            <input type="text" id="newVillageName" placeholder="ชื่อหมู่บ้าน" class="border p-2 rounded-xl bg-white">
+          </div>
+          <div class="flex justify-end space-x-2"><button onclick="toggleAddVillageForm()" class="px-3 py-1 text-xs text-slate-500">ยกเลิก</button><button onclick="addMasterVillage()" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs">บันทึก</button></div>
+        </div>
+        <div id="masterVillageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS (Details, Request, Login, Plan, Actual) -->
+  <div id="detailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3"><h3 class="font-extrabold text-slate-900">รายละเอียดคำขอ</h3><button onclick="closeDetailsModal()" class="text-xl font-bold">&times;</button></div>
+      <div id="detailsContent" class="space-y-3 text-xs sm:text-sm"></div>
+      <div class="pt-3 flex justify-between border-t"><button onclick="exportJobPDF()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs"><i class="fa-solid fa-file-pdf"></i> พิมพ์ PDF</button><button onclick="closeDetailsModal()" class="bg-slate-100 px-4 py-2 rounded-xl text-xs">ปิด</button></div>
+    </div>
+  </div>
+
+  <div id="requestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3"><h3 class="font-extrabold text-slate-900">ยื่นคำขอรับบริการเครื่องจักรกล</h3><button onclick="closeRequestModal()" class="text-xl font-bold">&times;</button></div>
+      <form id="requestForm" onsubmit="handleRequestSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input type="text" id="requesterName" required placeholder="ชื่อผู้ยื่นคำขอ *" class="border p-2.5 rounded-xl bg-slate-50">
+          <select id="requesterPosition" required class="border p-2.5 rounded-xl bg-slate-50"><option value="ประชาชน">ประชาชน</option><option value="ผู้ใหญ่บ้าน">ผู้ใหญ่บ้าน</option><option value="ส.อบต">ส.อบต</option><option value="เจ้าหน้าที่">เจ้าหน้าที่</option></select>
+          <select id="villageNo" onchange="autoFillVillageName()" required class="border p-2.5 rounded-xl bg-slate-50"><option value="">-- เลือกหมู่ที่ --</option></select>
+          <input type="text" id="villageName" readonly placeholder="หมู่บ้าน" class="border p-2.5 rounded-xl bg-slate-100 text-slate-500">
+          <input type="date" id="reqStartDate" class="border p-2.5 rounded-xl bg-slate-50">
+          <input type="date" id="reqEndDate" class="border p-2.5 rounded-xl bg-slate-50">
+        </div>
+        <input type="url" id="docLink" placeholder="Link เอกสารคำขอ (https://...)" class="w-full border p-2.5 rounded-xl bg-slate-50 text-xs">
+        <div class="flex justify-end space-x-2 pt-2"><button type="button" onclick="closeRequestModal()" class="px-4 py-2 text-xs">ยกเลิก</button><button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-xl text-xs">ส่งคำขอ</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl space-y-4">
+      <h3 class="font-extrabold text-slate-900 border-b pb-2">เข้าสู่ระบบแอดมิน</h3>
+      <select id="loginRole" class="w-full border p-2.5 rounded-xl text-xs"><option value="DATA_ENTRY">เจ้าหน้าที่บันทึกคำขอ</option><option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option></select>
+      <input type="password" id="loginPass" placeholder="รหัสผ่าน (12345)" class="w-full border p-2.5 rounded-xl text-xs">
+      <div class="flex justify-end space-x-2 pt-2"><button onclick="closeLoginModal()" class="px-3 py-1 text-xs">ยกเลิก</button><button onclick="performLogin()" class="bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs">เข้าสู่ระบบ</button></div>
+    </div>
+  </div>
+
+  <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+      <h3 class="font-extrabold text-slate-900 border-b pb-2">พิจารณาคำขอ & จัดแผนงาน</h3>
+      <input type="hidden" id="modalRowIndex">
+      <div class="grid grid-cols-2 gap-3">
+        <select id="modalApprovalStatus" class="border p-2 rounded-xl"><option value="Accepted">อนุมัติ</option><option value="Rejected">ปฏิเสธ</option></select>
+        <input type="text" id="modalApprovalRemark" placeholder="หมายเหตุ" class="border p-2 rounded-xl">
+        <input type="date" id="modalPlanStartDate" onchange="calcPlanDays()" class="border p-2 rounded-xl">
+        <input type="date" id="modalPlanEndDate" onchange="calcPlanDays()" class="border p-2 rounded-xl">
+        <input type="number" id="modalPlanDays" readonly placeholder="จำนวนวัน" class="border p-2 rounded-xl bg-slate-100">
+        <input type="number" step="0.01" id="modalPlanOilPrice" oninput="calcPlanDays()" value="35.00" class="border p-2 rounded-xl">
+        <input type="number" id="modalPlanFuel" readonly placeholder="น้ำมัน (ลิตร)" class="border p-2 rounded-xl bg-slate-100">
+        <input type="number" id="modalPlanFuelAmount" readonly placeholder="งบ (บาท)" class="border p-2 rounded-xl bg-slate-100">
+        <div class="col-span-2"><div id="modalMachineCheckboxes" class="border p-3 max-h-32 overflow-y-auto space-y-1 bg-slate-50"></div></div>
+        <div class="col-span-2"><div id="modalOperatorCheckboxes" class="border p-3 max-h-32 overflow-y-auto space-y-1 bg-slate-50"></div></div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2"><button onclick="closePlanModal()" class="px-3 py-1">ยกเลิก</button><button onclick="saveJobPlan()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl">บันทึกแผนงาน</button></div>
+    </div>
+  </div>
+
+  <div id="actualModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-xs">
+      <h3 class="font-extrabold text-slate-900 border-b pb-2">อัปเดตการปฏิบัติงาน</h3>
+      <input type="hidden" id="actRowIndex">
+      <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full border p-2.5 rounded-xl font-bold"><option value="ยังไม่ดำเนินการ">ยังไม่ดำเนินการ</option><option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option><option value="มีปัญหา/อุปสรรค">มีปัญหา/อุปสรรค</option><option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option></select>
+      <div id="issueContainer" class="hidden"><textarea id="actIssueDetail" placeholder="รายละเอียดปัญหา..." class="w-full border p-2 rounded-xl bg-rose-50"></textarea></div>
+      <div id="completedFields" class="hidden space-y-2 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+        <input type="date" id="actModalStart" onchange="calcActualDaysModal(true)" class="w-full border p-2 rounded-xl bg-white">
+        <input type="date" id="actModalEnd" onchange="calcActualDaysModal(true)" class="w-full border p-2 rounded-xl bg-white">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="actModalDays" readonly class="border p-2 rounded-xl bg-slate-100">
+          <input type="number" step="0.01" id="actModalFuel" oninput="calcActualDaysModal(false)" class="border p-2 rounded-xl bg-white">
+        </div>
+        <input type="number" step="0.01" id="actModalAmount" class="w-full border p-2 rounded-xl font-black text-emerald-600 bg-white">
+      </div>
+      <div class="flex justify-end space-x-2 pt-2"><button onclick="closeActualModal()" class="px-3 py-1">ยกเลิก</button><button onclick="saveActualProgressFromModal()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-xl">บันทึก</button></div>
+    </div>
+  </div>
+
+  <div id="notificationWidget" class="fixed bottom-6 right-6 z-50 hidden">
+    <button onclick="switchTab('pendingTab')" class="bg-slate-900 text-white font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border animate-pulse">
+      <i class="fa-solid fa-bell text-amber-400 text-xl"></i>
+      <div class="text-left text-xs"><div class="text-[10px] text-slate-400">คำร้องใหม่</div><span id="widgetCount">0</span> รายการ</div>
+    </button>
+  </div>
+
+  <!-- FRONTEND CLIENT SCRIPT -->
+  <script>
+    // 🔗 API URL ของคุณบอยที่ Deploy บน Google Apps Script เรียบร้อยแล้ว
+    const API_URL = 'https://script.google.com/macros/s/AKfycby8440wGbdr2n2EoEU2spvosDE7uU6FWOynlhcDho1IBJ4-LRSTwWDUXEh2W2wPPh3QOg/exec';
+
+    let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
+    let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
+    let CURRENT_SELECTED_REQUEST_ID = '';
+    let fuelChartInstance = null;
+    let villageChartInstance = null;
+
+    async function callGasApi(action, payload = {}) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, ...payload })
+        });
+        const result = await response.json();
+        return result;
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ API: ' + err.message, 'error');
+        return { success: false, message: err.message };
+      }
+    }
+
+    function calculateDaysBetween(startDateStr, endDateStr) {
+      if (!startDateStr || !endDateStr) return 0;
+      const d1 = new Date(startDateStr + 'T00:00:00');
+      const d2 = new Date(endDateStr + 'T00:00:00');
+      if (isNaN(d1) || isNaN(d2) || d2 < d1) return 0;
+      return Math.floor(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    function formatThaiDate(dateStr) {
+      if (!dateStr) return '-';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const year = parseInt(parts[0], 10) + 543;
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      if (monthIndex < 0 || monthIndex > 11) return dateStr;
+      return `${day} ${thaiMonths[monthIndex]} ${year}`;
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      let bg = 'bg-slate-900 text-white';
+      if (type === 'error') bg = 'bg-rose-600 text-white';
+      else if (type === 'info') bg = 'bg-indigo-600 text-white';
+      toast.className = `${bg} text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 transition`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    window.onload = function() {
+      loadData();
+    };
+
+    async function loadData() {
+      showToast('กำลังโหลดข้อมูลระบบ...', 'info');
+      const data = await callGasApi('getInitialData');
+      if (data && data.villages) {
+        GLOBAL_DATA = data;
+        renderVillagesDropdown();
+        renderPendingTable();
+        renderJobsTable();
+        renderSummaryJobs();
+        renderMasterLists();
+        renderAnalyticsDashboard();
+        updateRoleUI();
+      }
+    }
+
+    function updateRoleUI() {
+      const btnReq = document.getElementById('btnCreateRequest');
+      const btnSum = document.getElementById('btn-summaryTab');
+      const btnAna = document.getElementById('btn-analyticsTab');
+      const btnMas = document.getElementById('btn-masterTab');
+
+      if (CURRENT_USER.role === 'GUEST') {
+        btnReq.classList.add('hidden'); btnSum.classList.add('hidden'); btnAna.classList.add('hidden'); btnMas.classList.add('hidden');
+      } else if (CURRENT_USER.role === 'DATA_ENTRY') {
+        btnReq.classList.remove('hidden'); btnSum.classList.add('hidden'); btnAna.classList.add('hidden'); btnMas.classList.add('hidden');
+      } else if (CURRENT_USER.role === 'SUPER_ADMIN') {
+        btnReq.classList.remove('hidden'); btnSum.classList.remove('hidden'); btnAna.classList.remove('hidden'); btnMas.classList.remove('hidden');
+      }
+      updateNotificationWidget();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('bg-slate-900', 'text-white', 'font-extrabold'); el.classList.add('text-slate-600', 'font-bold'); });
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId).classList.remove('text-slate-600', 'font-bold');
+      document.getElementById('btn-' + tabId).classList.add('bg-slate-900', 'text-white', 'font-extrabold');
+      if (tabId === 'analyticsTab') renderAnalyticsDashboard();
+    }
+
+    function openRequestModal() { document.getElementById('requestModal').classList.remove('hidden'); }
+    function closeRequestModal() { document.getElementById('requestModal').classList.add('hidden'); }
+    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+    async function performLogin() {
+      const role = document.getElementById('loginRole').value;
+      const pass = document.getElementById('loginPass').value;
+      const res = await callGasApi('checkLogin', { role, password: pass });
+      if (res.success) {
+        CURRENT_USER = res;
+        document.getElementById('userBadge').innerText = res.name;
+        document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
+        document.getElementById('authBtn').onclick = logout;
+        closeLoginModal();
+        updateRoleUI();
+        renderPendingTable();
+        renderJobsTable();
+        renderSummaryJobs();
+        showToast('เข้าสู่ระบบสำเร็จ');
+      } else {
+        showToast(res.message, 'error');
+      }
+    }
+
+    function logout() {
+      CURRENT_USER = { role: 'GUEST', name: 'Guest' };
+      document.getElementById('userBadge').innerText = 'Guest';
+      document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ`;
+      document.getElementById('authBtn').onclick = openLoginModal;
+      switchTab('trackingTab');
+      updateRoleUI();
+      renderPendingTable();
+      renderJobsTable();
+      showToast('ออกจากระบบเรียบร้อยแล้ว');
+    }
+
+    function renderVillagesDropdown() {
+      const sel = document.getElementById('villageNo');
+      sel.innerHTML = '<option value="">-- เลือกหมู่ที่ --</option>';
+      GLOBAL_DATA.villages.forEach(v => { sel.innerHTML += `<option value="${v.no}">${v.display}</option>`; });
+    }
+
+    function autoFillVillageName() {
+      const vNo = document.getElementById('villageNo').value;
+      const found = GLOBAL_DATA.villages.find(v => String(v.no) === String(vNo));
+      document.getElementById('villageName').value = found ? found.name : '';
+    }
+
+    async function handleRequestSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        requesterName: document.getElementById('requesterName').value,
+        requesterPosition: document.getElementById('requesterPosition').value,
+        villageNo: document.getElementById('villageNo').value,
+        villageName: document.getElementById('villageName').value,
+        reqStartDate: document.getElementById('reqStartDate').value,
+        reqEndDate: document.getElementById('reqEndDate').value,
+        docLink: document.getElementById('docLink').value
+      };
+      const res = await callGasApi('submitNewRequest', { payload });
+      if (res.success) {
+        showToast('บันทึกคำขอสำเร็จ! รหัส: ' + res.requestId);
+        document.getElementById('requestForm').reset();
+        closeRequestModal();
+        loadData();
+      }
+    }
+
+    function updateNotificationWidget() {
+      const pCount = GLOBAL_DATA.pendingRequests.length;
+      document.getElementById('widgetCount').innerText = pCount;
+      document.getElementById('pendingBadgeTab').innerText = pCount;
+      if (pCount > 0) {
+        document.getElementById('pendingBadgeTab').classList.remove('hidden');
+        if (CURRENT_USER.role === 'SUPER_ADMIN') document.getElementById('notificationWidget').classList.remove('hidden');
+      } else {
+        document.getElementById('pendingBadgeTab').classList.add('hidden');
+        document.getElementById('notificationWidget').classList.add('hidden');
+      }
+    }
+
+    function renderPendingTable() {
+      const container = document.getElementById('pendingRequestsContainer');
+      container.innerHTML = '';
+      if (GLOBAL_DATA.pendingRequests.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 border text-sm">ไม่มีคำขอค้างรออนุมัติ</div>`;
+        return;
+      }
+      GLOBAL_DATA.pendingRequests.forEach(req => {
+        container.innerHTML += `
+          <div class="bg-white border-l-4 border-amber-500 border p-4 rounded-2xl shadow-sm space-y-2">
+            <div class="flex justify-between items-center"><span class="font-extrabold text-sm">${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}</span><span class="bg-amber-100 text-amber-900 text-xs px-2.5 py-1 rounded-full">รออนุมัติ</span></div>
+            <div class="text-xs text-slate-600">ผู้ยื่น: ${req.requesterName} (${req.requesterPosition})</div>
+          </div>`;
+      });
+    }
+
+    function renderJobsTable() {
+      const container = document.getElementById('jobsTableContainer');
+      container.innerHTML = GLOBAL_DATA.approvedJobs.length === 0 ? `<div class="bg-white p-8 text-center text-slate-400 border rounded-2xl text-sm">ยังไม่มีแผนงานที่ได้รับการอนุมัติ</div>` : `<div class="bg-white p-4 rounded-2xl shadow-sm text-sm">แผนงานที่อนุมัติแล้ว ${GLOBAL_DATA.approvedJobs.length} รายการ</div>`;
+    }
+
+    function renderSummaryJobs() {}
+    function renderMasterLists() {}
+    function renderAnalyticsDashboard() {}
+    function filterTrackingTable() {}
+    function filterEasyPassTable() {}
+    function closeDetailsModal() { document.getElementById('detailsModal').classList.add('hidden'); }
+    function exportJobPDF() {}
+    function toggleAddMachineForm() { document.getElementById('addMachineForm').classList.toggle('hidden'); }
+    function toggleAddOpForm() { document.getElementById('addOpForm').classList.toggle('hidden'); }
+    function toggleAddVillageForm() { document.getElementById('addVillageForm').classList.toggle('hidden'); }
+  </script>
+</body>
+</html>
