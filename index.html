@@ -55,6 +55,19 @@
     </div>
   </nav>
 
+  <!-- NOTIFICATION WIDGET (FOR SUPER ADMIN) -->
+  <div id="notificationWidget" class="hidden w-full px-4 sm:px-6 mt-4">
+    <div onclick="switchTab('pendingTab')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 p-3.5 rounded-2xl shadow-sm border border-amber-400 flex items-center justify-between cursor-pointer transition">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-black">
+          <i class="fa-solid fa-bell animate-bounce"></i>
+        </div>
+        <span class="font-bold text-xs sm:text-sm">คุณมีคำขอขอใช้เครื่องจักรกลรอการพิจารณาอนุมัติ</span>
+      </div>
+      <span class="bg-slate-950 text-amber-400 font-black text-xs px-3 py-1 rounded-full"><span id="widgetCount">0</span> รายการ</span>
+    </div>
+  </div>
+
   <!-- MAIN CONTAINER -->
   <div class="w-full px-4 sm:px-6 py-5">
 
@@ -65,7 +78,7 @@
       </button>
       <button onclick="switchTab('pendingTab')" id="btn-pendingTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
         <i class="fa-solid fa-hourglass-half text-amber-500"></i> 2. คำขอรออนุมัติ
-        <span id="pendingBadgeTab" class="hidden ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">0</span>
+        <span id="pendingBadgeTab" class="hidden ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
       </button>
       <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
         <i class="fa-solid fa-receipt text-emerald-600"></i> 3. สรุปผลส่งตัดเงิน Easy Pass
@@ -290,7 +303,111 @@
     </div>
   </div>
 
-  <!-- DIALOG 4: ADMIN EDIT/PLANNING MODAL (ปรับระบบคำนวณน้ำมัน Dynamic) -->
+  <!-- MODAL 1: REQUEST FORM MODAL -->
+  <div id="requestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-emerald-500"></i> ยื่นคำขอขอใช้บริการเครื่องจักรกล
+        </h3>
+        <button onclick="closeRequestModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+
+      <form id="requestForm" onsubmit="handleRequestSubmit(event)" class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ชื่อ-นามสกุล ผู้ยื่นคำขอ *</label>
+          <input type="text" id="requesterName" required placeholder="เช่น นายสมชาย ใจดี" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ตำแหน่ง / สถานะ *</label>
+          <input type="text" id="requesterPosition" required placeholder="เช่น ผู้ใหญ่บ้าน / ประชาชน" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">หมู่ที่ *</label>
+            <select id="villageNo" required onchange="autoFillVillageName()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500 font-bold"></select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อหมู่บ้าน *</label>
+            <input type="text" id="villageName" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-slate-700 font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้วันแรก *</label>
+            <input type="date" id="reqStartDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้ถึงวันสุดท้าย *</label>
+            <input type="date" id="reqEndDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ลิงก์แนบเอกสาร / รูปภาพคำขอ (Google Drive URL)</label>
+          <input type="url" id="docLink" placeholder="https://drive.google.com/file/d/..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeRequestModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition">ส่งคำขอรับบริการ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-right-to-bracket text-amber-500"></i> เข้าสู่ระบบเจ้าหน้าที่
+        </h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ประเภทสิทธิ์ผู้ใช้งาน</label>
+          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+            <option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
+            <option value="DATA_ENTRY">เจ้าหน้าที่บันทึกคำขอ (Data Entry)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">รหัสผ่านยืนยันสิทธิ์</label>
+          <input type="password" id="loginPass" placeholder="กรอกรหัสผ่าน (เริ่มต้น 12345)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-amber-500 font-bold" onkeyup="if(event.key==='Enter') performLogin()">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeLoginModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs">ยกเลิก</button>
+        <button onclick="performLogin()" class="px-5 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-xl shadow-sm transition text-xs">ตกลงเข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: PROJECT DETAILS & PDF EXPORT MODAL -->
+  <div id="detailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-indigo-600"></i> รายละเอียดข้อมูลคำขอ & โครงการ
+        </h3>
+        <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+
+      <div id="detailsContent" class="space-y-3"></div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+        <button onclick="exportJobPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-pdf text-base"></i> พิมพ์ใบรายงานผล PDF
+        </button>
+        <button onclick="closeDetailsModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs font-bold">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL (ระบบคำนวณน้ำมัน Dynamic) -->
   <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
       <h3 class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -361,8 +478,71 @@
     </div>
   </div>
 
+  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL -->
+  <div id="actualModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
+      <h3 class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง
+      </h3>
+      <input type="hidden" id="actRowIndex">
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">สถานะการปฏิบัติงาน *</label>
+          <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+            <option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option>
+            <option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option>
+            <option value="มีปัญหา/อุปสรรค">มีปัญหา / อุปสรรค</option>
+          </select>
+        </div>
+
+        <div id="issueContainer" class="hidden">
+          <label class="block font-bold text-rose-700 mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
+          <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500"></textarea>
+        </div>
+
+        <div id="completedFields" class="space-y-3 border-t border-slate-100 pt-3">
+          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+            <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
+            <div><b>อัตราสิ้นเปลืองรวมของรถที่ใช้:</b> <span id="lblJobFuelRate" class="font-bold text-amber-700">0</span> ลิตร/วัน</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">วันเริ่มทำงานจริง *</label>
+              <input type="date" id="actModalStart" onchange="calcActualDaysModal(true)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">วันเสร็จสิ้นงานจริง *</label>
+              <input type="date" id="actModalEnd" onchange="calcActualDaysModal(true)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">จำนวนวันจริง</label>
+              <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">น้ำมันเชื้อเพลิงใช้จริง (ลิตร) *</label>
+              <input type="number" step="0.1" id="actModalFuel" oninput="calcActualDaysModal(false)" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-amber-600 outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ยอดเงินตัดงบ Easy Pass สรุปสุดท้าย (บาท)</label>
+            <input type="number" id="actModalAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600 text-base">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeActualModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+        <button onclick="saveActualProgressFromModal()" class="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CLIENT SCRIPT -->
   <script>
+    // ⚠️ นำ Web App URL ล่าสุดจากการ Deploy ใน Google Apps Script มาวางแปะแทนที่เครื่องหมายคำพูดด้านล่างนี้
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
@@ -373,6 +553,11 @@
 
     async function callGAS(action, payload = {}) {
       try {
+        if (!GAS_API_URL || GAS_API_URL.trim() === '') {
+          showToast('กรุณาระบุ GAS_API_URL ในไฟล์ index.html ให้ถูกต้อง', 'error');
+          return;
+        }
+
         const response = await fetch(GAS_API_URL, {
           method: 'POST',
           redirect: 'follow',
@@ -446,6 +631,7 @@
     async function loadData() {
       try {
         const data = await callGAS('getInitialData');
+        if (!data) return;
         GLOBAL_DATA = data;
         renderVillagesDropdown();
         renderPendingTable();
@@ -519,7 +705,7 @@
       const pass = document.getElementById('loginPass').value;
 
       const res = await callGAS('checkLogin', { role: role, password: pass });
-      if (res.success) {
+      if (res && res.success) {
         CURRENT_USER = res;
         document.getElementById('userBadge').innerText = `${res.name}`;
         document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
@@ -532,7 +718,7 @@
         renderSummaryJobs();
         showToast('เข้าสู่ระบบสำเร็จ');
       } else {
-        showToast(res.message, 'error');
+        showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
       }
     }
 
@@ -576,7 +762,7 @@
       };
       
       const res = await callGAS('submitNewRequest', payload);
-      if (res.success) {
+      if (res && res.success) {
         showToast('บันทึกคำขอรับบริการสำเร็จ! รหัส: ' + res.requestId);
         document.getElementById('requestForm').reset();
         closeRequestModal();
@@ -666,7 +852,7 @@
 
       try {
         const res = await callGAS('generateOfficialPDF', { requestId: CURRENT_SELECTED_REQUEST_ID });
-        if (res.pdfDataUrl) {
+        if (res && res.pdfDataUrl) {
           const downloadLink = document.createElement("a");
           downloadLink.href = res.pdfDataUrl;
           downloadLink.download = `Report-${CURRENT_SELECTED_REQUEST_ID}.pdf`;
@@ -909,7 +1095,7 @@
       };
 
       const res = await callGAS('updateJobApprovalAndPlan', payload);
-      if (res.success) {
+      if (res && res.success) {
         showToast('อนุมัติและบันทึกแผนงานสำเร็จ');
         closePlanModal();
         loadData();
@@ -919,7 +1105,7 @@
     async function deleteJob(rowIndex) {
       if (!confirm('ยืนยันลบแผนงานนี้ออกจากระบบ?')) return;
       const res = await callGAS('deleteJobRow', { rowIndex: rowIndex });
-      if (res.success) {
+      if (res && res.success) {
         showToast('ลบแผนงานเรียบร้อยแล้ว');
         loadData();
       }
@@ -1015,7 +1201,7 @@
       };
 
       const res = await callGAS('updateJobActualProgress', payload);
-      if (res.success) {
+      if (res && res.success) {
         showToast('อัปเดตการปฏิบัติงานสำเร็จ');
         closeActualModal();
         loadData();
@@ -1034,7 +1220,7 @@
       };
 
       const res = await callGAS('updateJobApprovalAndPlan', payload);
-      if (res.success) {
+      if (res && res.success) {
         showToast('ปฏิเสธคำขอเรียบร้อยแล้ว');
         loadData();
       }
@@ -1075,7 +1261,7 @@
 
       try {
         const res = await callGAS('sendToEasyPassIntegration', { jobData: jobData, isResend: isResend });
-        if (res.success) {
+        if (res && res.success) {
           showToast(res.isResend ? 'ส่งคำร้องซ้ำไปยังแอปงบประมาณเรียบร้อยแล้ว' : 'ส่งคำร้องตัดเงินเรียบร้อยแล้ว');
           loadData();
         }
@@ -1437,7 +1623,7 @@
 
         try {
           const res = await callGAS(serverActionName, { base64Data: base64Result, fileName: file.name });
-          callback(res.imgUrl || '');
+          callback(res ? (res.imgUrl || '') : '');
         } catch (err) {
           showToast('อัปโหลดไฟล์ภาพไม่สำเร็จ: ' + err.message, 'error');
         }
@@ -1452,7 +1638,7 @@
 
     async function quickUpdateMachineStatus(rowIndex, newStatus) {
       const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'MACHINE', data: { rowIndex: rowIndex, status: newStatus } });
-      if (res.success) {
+      if (res && res.success) {
         showToast('อัปเดตสถานะเครื่องจักรเรียบร้อยแล้ว');
         loadData();
       }
@@ -1460,7 +1646,7 @@
 
     async function quickUpdateOperatorStatus(rowIndex, newStatus) {
       const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'OPERATOR', data: { rowIndex: rowIndex, status: newStatus } });
-      if (res.success) {
+      if (res && res.success) {
         showToast('อัปเดตสถานะช่างผู้ขับเรียบร้อยแล้ว');
         loadData();
       }
@@ -1506,7 +1692,7 @@
 
     async function executeAddMasterMachine(data) {
       const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'MACHINE', data: data });
-      if (res.success) {
+      if (res && res.success) {
         showToast('เพิ่มข้อมูลเครื่องจักรสำเร็จ');
         toggleAddMachineForm();
         loadData();
@@ -1539,7 +1725,7 @@
 
     async function executeAddMasterOperator(data) {
       const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'OPERATOR', data: data });
-      if (res.success) {
+      if (res && res.success) {
         showToast('เพิ่มข้อมูลช่างผู้ขับสำเร็จ');
         toggleAddOpForm();
         loadData();
@@ -1555,7 +1741,7 @@
       if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
 
       const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'VILLAGE', data: data });
-      if (res.success) {
+      if (res && res.success) {
         showToast('เพิ่มข้อมูลหมู่บ้านสำเร็จ');
         toggleAddVillageForm();
         loadData();
@@ -1565,7 +1751,7 @@
     async function delMaster(type, rowIndex) {
       if (!confirm('ยืนยันลบข้อมูลนี้ออกจากระบบ?')) return;
       const res = await callGAS('manageMasterData', { action: 'DELETE', entityType: type, data: { rowIndex: rowIndex } });
-      if (res.success) {
+      if (res && res.success) {
         showToast('ลบข้อมูลเรียบร้อยแล้ว');
         loadData();
       }
