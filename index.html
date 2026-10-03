@@ -35,9 +35,6 @@
             <span class="font-black text-lg sm:text-xl tracking-tight text-white">
               ระบบเครื่องจักรกล & Easy Pass
             </span>
-            <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
-              v3.0 Wide Layout
-            </span>
           </div>
         </div>
         <div class="flex items-center space-x-2.5">
@@ -187,7 +184,6 @@
 
     <!-- TAB 5: MASTER MANAGEMENT -->
     <div id="masterTab" class="tab-content hidden space-y-6">
-      <!-- SECTION 1: เครื่องจักร -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -251,7 +247,6 @@
         <div id="masterMachineGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
       </div>
 
-      <!-- SECTION 2: ช่างผู้ขับ -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -290,7 +285,6 @@
         <div id="masterOperatorGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
-      <!-- SECTION 3: หมู่บ้าน -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
@@ -751,9 +745,50 @@
     </div>
   </div>
 
+  <!-- 🔥 MODAL 9: CUSTOM CONFIRMATION DIALOG (สวยงาม โมเดิร์น เข้าธีม BENTO/SLATE) -->
+  <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100 relative transform transition-all scale-100">
+      <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+        <div class="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 text-amber-600 flex items-center justify-center text-lg font-black flex-shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 id="confirmTitle" class="text-sm sm:text-base font-black text-slate-900 leading-tight">ยืนยันการส่งข้อมูล Easy Pass</h3>
+          <p id="confirmSubTitle" class="text-[11px] text-amber-600 font-bold mt-0.5">ระบบตัดงบประมาณรายหมู่บ้าน</p>
+        </div>
+      </div>
+
+      <div id="confirmContentBox" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs sm:text-sm">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-bold">รหัสโครงการ:</span>
+          <span id="confirmReqId" class="font-extrabold text-slate-900 text-sm">REQ-000000</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-bold">สถานที่ / หมู่บ้าน:</span>
+          <span id="confirmVillage" class="font-bold text-slate-800">บ้านใหม่จะคะ</span>
+        </div>
+        <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+          <span class="text-slate-600 font-extrabold">ยอดตัดงบสุทธิ:</span>
+          <span id="confirmAmount" class="font-black text-emerald-600 text-base">0 บาท</span>
+        </div>
+      </div>
+
+      <p id="confirmMessage" class="text-xs text-slate-500 font-medium text-center italic">* ข้อมูลจะถูกยิงส่งเข้าแผ่นงานค้างอนุมัติในระบบบริหารงบประมาณ</p>
+
+      <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+        <button id="btnCancelConfirm" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold rounded-xl transition text-xs">
+          ยกเลิก
+        </button>
+
+        <button id="btnOkConfirm" class="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งข้อมูล
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- CLIENT SCRIPT -->
   <script>
-    // URL ของ API แอปพลิเคชันเครื่องจักรกล
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
@@ -781,6 +816,54 @@
         showToast('เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบเซิร์ฟเวอร์', 'error');
         throw error;
       }
+    }
+
+    // 🔥 CUSTOM CONFIRMATION MODAL PROMISE (แทนที่ confirm Browser ดั้งเดิม)
+    function showCustomConfirm(data, isResend) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('customConfirmModal');
+        const reqId = document.getElementById('confirmReqId');
+        const village = document.getElementById('confirmVillage');
+        const amount = document.getElementById('confirmAmount');
+        const title = document.getElementById('confirmTitle');
+        const msg = document.getElementById('confirmMessage');
+
+        reqId.innerText = data.requestId || '-';
+        village.innerText = `หมู่ ${data.villageNo || ''} ${data.villageName || ''}`;
+        amount.innerText = `${(data.totalAmount || 0).toLocaleString()} บาท`;
+
+        if (isResend) {
+          title.innerText = '⚠️ เตือนการส่งคำร้อง Easy Pass ซ้ำ!';
+          msg.innerText = '* รายการนี้เคยถูกยิงส่งแล้ว ยืนยันการส่งคำร้องซ้ำอีกครั้ง?';
+        } else {
+          title.innerText = 'ยืนยันการส่งข้อมูล Easy Pass';
+          msg.innerText = '* ข้อมูลจะถูกยิงส่งเข้าแผ่นงานค้างอนุมัติในระบบบริหารงบประมาณ';
+        }
+
+        modal.classList.remove('hidden');
+
+        const btnOk = document.getElementById('btnOkConfirm');
+        const btnCancel = document.getElementById('btnCancelConfirm');
+
+        const handleOk = () => {
+          cleanup();
+          resolve(true);
+        };
+
+        const handleCancel = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        const cleanup = () => {
+          modal.classList.add('hidden');
+          btnOk.removeEventListener('click', handleOk);
+          btnCancel.removeEventListener('click', handleCancel);
+        };
+
+        btnOk.addEventListener('click', handleOk);
+        btnCancel.addEventListener('click', handleCancel);
+      });
     }
 
     function calculateDaysBetween(startDateStr, endDateStr) {
@@ -1504,15 +1587,12 @@
       }
     }
 
+    // 🔥 สั่งส่ง Easy Pass ผ่าน Custom Confirmation Modal (สวย พรีเมียม ตรงธีม)
     async function confirmAndSendEasyPass(rowIndex, isResend) {
       const jobData = getJobDataByRowIndex(rowIndex);
 
-      if (isResend) {
-        const confirmMessage = `⚠️ เตือนการส่งคำร้องซ้ำ!\n\nรายการ: ${jobData.requestId} (${jobData.villageName})\nจำนวนเงิน: ${(jobData.totalAmount || 0).toLocaleString()} บาท\n\nยืนยันการส่งคำร้องตัดเงินอีกครั้ง?`;
-        if (!confirm(confirmMessage)) return;
-      } else {
-        if (!confirm(`ยืนยันการส่งคำร้องตัดเงิน Easy Pass โครงการ ${jobData.requestId} จำนวน ${(jobData.totalAmount || 0).toLocaleString()} บาท?`)) return;
-      }
+      const isConfirmed = await showCustomConfirm(jobData, isResend);
+      if (!isConfirmed) return;
 
       showToast('กำลังส่งคำร้อง Easy Pass ไปยังแอปบริหารงบประมาณ...', 'info');
 
