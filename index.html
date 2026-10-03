@@ -36,7 +36,7 @@
               ระบบเครื่องจักรกล & Easy Pass
             </span>
             <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
-              v2.8 Final
+              v3.0 Wide Layout
             </span>
           </div>
         </div>
@@ -369,7 +369,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: LOGIN MODAL -->
+  <!-- MODAL 2: LOGIN MODAL (เพิ่ม Event Listener รองรับการกด Enter ทั้งช่องรหัสและ Dropdown) -->
   <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -382,7 +382,7 @@
       <div class="space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block font-bold text-slate-700 mb-1">ประเภทสิทธิ์ผู้ใช้งาน</label>
-          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900" onkeyup="if(event.key==='Enter') performLogin()">
             <option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
             <option value="DATA_ENTRY">ผู้บันทึกคำขอและอัปเดต</option>
           </select>
@@ -421,11 +421,11 @@
     </div>
   </div>
 
-  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL -->
+  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL (ปรับขนาดขยายใหญ่ max-w-6xl แบบ 2 คอลัมน์) -->
   <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative flex flex-col">
+    <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
-        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
           <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน
         </h3>
         <button onclick="closePlanModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
@@ -435,69 +435,92 @@
 
       <div class="p-6 space-y-4 pt-1">
         <input type="hidden" id="modalRowIndex">
-        
-        <div class="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
-            <select id="modalApprovalStatus" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-              <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
-              <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
-            <input type="text" id="modalApprovalRemark" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
-            <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
-            <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
-            <input type="number" id="modalPlanDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-indigo-600">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันจัดแผน (บาท/ลิตร) *</label>
-            <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel('modal')" value="35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
+
+        <!-- GRID 2 COLUMNS: ซ้ายคุมข้อมูลแผนงาน/ช่าง/สรุป - ขวาโชว์รถทุกคันแบบ NO SCROLLBAR -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- LEFT COLUMN (5/12): ข้อมูลทั่วไป, ช่างผู้ปฏิบัติงาน และสรุปรวมเงิน -->
+          <div class="lg:col-span-5 space-y-4 border-r border-slate-100 pr-0 lg:pr-4">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
+              <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
+              
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
+                  <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                    <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
+                    <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
+                  <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
+                  <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
+                  <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
+                  <input type="number" id="modalPlanDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-indigo-600">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันจัดแผน (บาท/ลิตร) *</label>
+                  <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel('modal')" value="35.00" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
+                </div>
+              </div>
+            </div>
+
+            <!-- กล่องเลือกช่างผู้ปฏิบัติงาน (โชว์เต็มพื้นที่) -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+              <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงาน</label>
+              <div id="modalOperatorCheckboxes" class="space-y-1.5 text-xs bg-white p-3 rounded-xl border border-slate-200"></div>
+            </div>
+
+            <!-- กล่องสรุปผลรวมน้ำมันและงบประมาณ -->
+            <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-2">
+              <h4 class="font-extrabold text-emerald-950 text-xs uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-calculator text-emerald-600"></i> สรุปผลรวมประมาณการ</h4>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-600 mb-0.5">ประเมินน้ำมันรวม (ลิตร)</label>
+                  <input type="number" id="modalPlanFuel" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-bold text-amber-600">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 mb-0.5">ค่าน้ำมันรวม Easy Pass (บาท)</label>
+                  <input type="number" id="modalPlanFuelAmount" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-black text-emerald-600 text-sm">
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="col-span-2 space-y-2">
-            <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</label>
-            <div id="modalMachineCheckboxes" class="border border-slate-200 rounded-2xl p-3 max-h-64 overflow-y-auto space-y-3 bg-slate-50 text-xs"></div>
+          <!-- RIGHT COLUMN (7/12): เลือกเครื่องจักรกล (โชว์การ์ดรถทุกคันแบบ NO SCROLLBAR) -->
+          <div class="lg:col-span-7 space-y-3">
+            <label class="block text-xs font-extrabold text-slate-900 text-sm flex items-center justify-between">
+              <span><i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</span>
+              <span class="text-xs font-normal text-slate-500">* ติ๊กถูกที่ตัวรถเพื่อขยายเงื่อนไขคำนวณ</span>
+            </label>
+            <div id="modalMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ประเมินน้ำมันรวม (ลิตร)</label>
-            <input type="number" id="modalPlanFuel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-amber-600">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ประมาณการค่าน้ำมันรวม (บาท)</label>
-            <input type="number" id="modalPlanFuelAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600">
-          </div>
-
-          <div class="col-span-2">
-            <label class="block text-xs font-bold text-slate-800 mb-1"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงาน</label>
-            <div id="modalOperatorCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-32 overflow-y-auto space-y-1 bg-slate-50 text-xs"></div>
-          </div>
         </div>
 
-        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-          <button onclick="closePlanModal()" class="px-4 py-2 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-          <button onclick="saveJobPlan()" class="px-4 py-2 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL (ปรับโครงสร้างเป็น DYNAMIC PER-MACHINE) -->
+  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL (ปรับขนาดขยายใหญ่ max-w-6xl แบบ 2 คอลัมน์) -->
   <div id="actualModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative flex flex-col">
+    <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
-        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง
         </h3>
         <button onclick="closeActualModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
@@ -508,10 +531,10 @@
       <div class="p-6 space-y-4 pt-1">
         <input type="hidden" id="actRowIndex">
 
-        <div class="space-y-3 text-xs sm:text-sm">
+        <div class="space-y-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">สถานะการปฏิบัติงาน *</label>
-            <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+            <label class="block font-bold text-slate-700 text-xs sm:text-sm mb-1">สถานะการปฏิบัติงาน *</label>
+            <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 text-xs sm:text-sm">
               <option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option>
               <option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option>
               <option value="มีปัญหา/อุปสรรค">มีปัญหา / อุปสรรค</option>
@@ -519,57 +542,79 @@
           </div>
 
           <div id="issueContainer" class="hidden">
-            <label class="block font-bold text-rose-700 mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
-            <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500"></textarea>
+            <label class="block font-bold text-rose-700 text-xs sm:text-sm mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
+            <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500 text-xs sm:text-sm"></textarea>
           </div>
 
-          <div id="completedFields" class="space-y-3 border-t border-slate-100 pt-3">
-            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex justify-between items-center">
-              <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
-              <input type="hidden" id="actJobOilPriceVal" value="35.00">
-            </div>
+          <!-- CONTAINER กรณีปฏิบัติงานแล้วเสร็จ (GRID 2 COLUMNS) -->
+          <div id="completedFields" class="space-y-4 border-t border-slate-100 pt-3">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              <!-- LEFT COLUMN (5/12): วันทำงานจริง, ช่างจริง และสรุปเงิน -->
+              <div class="lg:col-span-5 space-y-4 border-r border-slate-100 pr-0 lg:pr-4">
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex justify-between items-center">
+                  <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
+                  <input type="hidden" id="actJobOilPriceVal" value="35.00">
+                </div>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">วันเริ่มทำงานจริง *</label>
-                <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">วันเสร็จสิ้นงานจริง *</label>
-                <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-              </div>
-              <div class="col-span-2">
-                <label class="block font-bold text-slate-700 mb-1">จำนวนวันปฏิบัติงานจริง</label>
-                <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700">
-              </div>
-            </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
+                  <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-clock text-blue-600"></i> ระยะเวลาปฏิบัติงานจริง</h4>
+                  
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเริ่มทำงานจริง *</label>
+                      <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเสร็จสิ้นงานจริง *</label>
+                      <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
+                    </div>
+                    <div class="col-span-2">
+                      <label class="block font-bold text-slate-700 text-xs mb-1">จำนวนวันปฏิบัติงานจริง</label>
+                      <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700 text-xs">
+                    </div>
+                  </div>
+                </div>
 
-            <div class="col-span-2 space-y-2">
-              <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันใช้จริงประจำรถ</label>
-              <div id="actMachineCheckboxes" class="border border-slate-200 rounded-2xl p-3 max-h-64 overflow-y-auto space-y-3 bg-slate-50 text-xs"></div>
-            </div>
+                <!-- กล่องเลือกช่างผู้ปฏิบัติงานจริง -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงานจริง</label>
+                  <div id="actOperatorCheckboxes" class="space-y-1.5 text-xs bg-white p-3 rounded-xl border border-slate-200"></div>
+                </div>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">น้ำมันเชื้อเพลิงใช้จริงรวม (ลิตร)</label>
-                <input type="number" id="actModalFuel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-amber-600">
+                <!-- กล่องสรุปยอดเงินตัดงบ Easy Pass สรุปสุดท้าย -->
+                <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-2">
+                  <h4 class="font-extrabold text-emerald-950 text-xs uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-receipt text-emerald-600"></i> สรุปผลยอดตัดเงิน Easy Pass</h4>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label class="block font-bold text-slate-600 mb-0.5">น้ำมันเชื้อเพลิงจริง (ลิตร)</label>
+                      <input type="number" id="actModalFuel" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-bold text-amber-600">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-600 mb-0.5">ยอดตัดงบสุดท้าย (บาท)</label>
+                      <input type="number" id="actModalAmount" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-black text-emerald-600 text-sm">
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">ยอดเงินตัดงบ Easy Pass สรุปสุดท้าย (บาท)</label>
-                <input type="number" id="actModalAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600">
-              </div>
-            </div>
 
-            <div class="col-span-2">
-              <label class="block text-xs font-bold text-slate-800 mb-1"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงานจริง</label>
-              <div id="actOperatorCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-32 overflow-y-auto space-y-1 bg-slate-50 text-xs"></div>
+              <!-- RIGHT COLUMN (7/12): เครื่องจักรใช้จริง (โชว์การ์ดรถทุกคันแบบ NO SCROLLBAR) -->
+              <div class="lg:col-span-7 space-y-3">
+                <label class="block text-xs font-extrabold text-slate-900 text-sm flex items-center justify-between">
+                  <span><i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันใช้จริงประจำรถ</span>
+                  <span class="text-xs font-normal text-slate-500">* ปรับแก้ไขชั่วโมง/กิโลเมตรที่ใช้จริงได้ทันที</span>
+                </label>
+                <div id="actMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+              </div>
+
             </div>
           </div>
         </div>
 
-        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-          <button onclick="closeActualModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-          <button onclick="saveActualProgressFromModal()" class="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button onclick="closeActualModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveActualProgressFromModal()" class="px-6 py-2.5 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
         </div>
       </div>
     </div>
@@ -1184,6 +1229,7 @@
       document.getElementById('planModal').classList.remove('hidden');
     }
 
+    // แสดงการ์ดรถทุกคันแบบ NO SCROLLBAR
     function renderPerMachineCheckboxes(containerId, prefix, selectedStr) {
       const mContainer = document.getElementById(containerId);
       mContainer.innerHTML = '';
@@ -1195,16 +1241,16 @@
         const defaultMode = (m.ratePerKm > 0) ? 'PER_KM' : 'PER_DAY';
 
         mContainer.innerHTML += `
-          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
-            <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}', '${prefix}')" class="rounded text-indigo-600 w-4 h-4">
-              <span class="font-extrabold text-slate-900 text-sm">${m.name}</span>
+          <div id="${mKey}_card" class="p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${isChecked ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-400' : 'bg-slate-50 border-slate-200/90'}">
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}', '${prefix}')" class="rounded text-amber-600 w-4 h-4">
+              <span class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">${m.name}</span>
             </label>
 
-            <div id="${mKey}_panel" class="${isChecked ? '' : 'hidden'} bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2 pt-2">
-              <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
-                <span class="font-bold text-slate-700">เงื่อนไขคิดน้ำมัน:</span>
-                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel('${prefix}')" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none">
+            <div id="${mKey}_panel" class="${isChecked ? '' : 'hidden'} bg-white p-3 rounded-xl border border-amber-200 space-y-2">
+              <div class="flex items-center justify-between flex-wrap gap-1 text-xs">
+                <span class="font-bold text-amber-950">เงื่อนไขคิดน้ำมัน:</span>
+                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel('${prefix}')" class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none text-xs">
                   <option value="PER_DAY" ${defaultMode === 'PER_DAY' ? 'selected' : ''}>คิดเป็นวัน (${m.fuelRate || 0} ลิตร/วัน)</option>
                   <option value="PER_HOUR">คิดเป็นชั่วโมง (${m.ratePerHour || 0} ลิตร/ชม.)</option>
                   <option value="PER_KM" ${defaultMode === 'PER_KM' ? 'selected' : ''}>คิดเป็นกิโลเมตร (${m.ratePerKm || 0} ลิตร/กม.)</option>
@@ -1213,8 +1259,8 @@
 
               <div id="${mKey}_inputBox" class="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">ระบุ ชม./วัน หรือ ระยะทาง กม.</label>
-                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel('${prefix}')" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
+                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">ระบุ ชม./วัน หรือ กม.</label>
+                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel('${prefix}')" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-amber-700 mb-0.5">ลิตรรวมคันนี้</label>
@@ -1235,9 +1281,9 @@
       GLOBAL_DATA.operators.forEach(o => {
         const isChecked = selectedOperators.includes(o.name) ? 'checked' : '';
         oContainer.innerHTML += `
-          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer">
-            <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-indigo-600">
-            <span><b>${o.name}</b> (${o.position})</span>
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-blue-600">
+            <span class="text-xs"><b>${o.name}</b> <span class="text-slate-500">(${o.position || 'ช่างผู้ขับ'})</span></span>
           </label>
         `;
       });
@@ -1246,8 +1292,16 @@
     function toggleMachineCalcPanel(mKey, prefix) {
       const chk = document.getElementById(`${mKey}_chk`);
       const panel = document.getElementById(`${mKey}_panel`);
-      if (chk && panel) {
-        if (chk.checked) panel.classList.remove('hidden'); else panel.classList.add('hidden');
+      const card = document.getElementById(`${mKey}_card`);
+
+      if (chk && panel && card) {
+        if (chk.checked) {
+          panel.classList.remove('hidden');
+          card.className = "p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-amber-50/60 border-amber-300 ring-1 ring-amber-400";
+        } else {
+          panel.classList.add('hidden');
+          card.className = "p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-slate-50 border-slate-200/90";
+        }
       }
       recalculatePerMachineFuel(prefix);
     }
@@ -1345,7 +1399,6 @@
       }
     }
 
-    // เปิด Modal อัปเดตงานจริงแบบยกชุด Per-Machine
     function openActualModal(rowIndex) {
       const job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
       if (!job) return;
