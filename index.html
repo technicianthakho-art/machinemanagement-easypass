@@ -20,7 +20,7 @@
 </head>
 <body class="text-slate-900 relative min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 pb-12 bg-slate-50">
 
-  <!-- TOAST NOTIFICATION CONTAINER (ตำแหน่ง top-20 ไม่บัง Navbar) -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- TOP NAVIGATION BAR -->
@@ -36,7 +36,7 @@
               ระบบเครื่องจักรกล & Easy Pass
             </span>
             <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
-              v2.7 Complete
+              v2.8 Final
             </span>
           </div>
         </div>
@@ -209,7 +209,6 @@
             <input type="text" id="newMachinePlate" placeholder="ทะเบียน" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
             <input type="text" id="newMachineAssetNo" placeholder="เลขครุภัณฑ์" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
             
-            <!-- กรอบเกณฑ์การใช้น้ำมัน 4 ช่อง เรียงจากซ้ายไปขวา -->
             <div class="col-span-1 sm:col-span-2 md:col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-2">
               <label class="block text-xs font-black text-amber-950"><i class="fa-solid fa-gas-pump mr-1 text-amber-600"></i> เกณฑ์การใช้น้ำมัน</label>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -425,8 +424,6 @@
   <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL -->
   <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative flex flex-col">
-      
-      <!-- STICKY HEADER พร้อมปุ่มปิด ✕ -->
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
           <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน
@@ -453,11 +450,11 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
-            <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
-            <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
@@ -465,10 +462,9 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันจัดแผน (บาท/ลิตร) *</label>
-            <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel()" value="35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
+            <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel('modal')" value="35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
           </div>
 
-          <!-- PER-MACHINE DYNAMIC SELECTION CONTAINER -->
           <div class="col-span-2 space-y-2">
             <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</label>
             <div id="modalMachineCheckboxes" class="border border-slate-200 rounded-2xl p-3 max-h-64 overflow-y-auto space-y-3 bg-slate-50 text-xs"></div>
@@ -497,68 +493,84 @@
     </div>
   </div>
 
-  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL -->
+  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL (ปรับโครงสร้างเป็น DYNAMIC PER-MACHINE) -->
   <div id="actualModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+    <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative flex flex-col">
+      <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง
         </h3>
-        <button onclick="closeActualModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+        <button onclick="closeActualModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
+          ✕
+        </button>
       </div>
       
-      <input type="hidden" id="actRowIndex">
+      <div class="p-6 space-y-4 pt-1">
+        <input type="hidden" id="actRowIndex">
 
-      <div class="space-y-3 text-xs sm:text-sm">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">สถานะการปฏิบัติงาน *</label>
-          <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
-            <option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option>
-            <option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option>
-            <option value="มีปัญหา/อุปสรรค">มีปัญหา / อุปสรรค</option>
-          </select>
-        </div>
-
-        <div id="issueContainer" class="hidden">
-          <label class="block font-bold text-rose-700 mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
-          <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500"></textarea>
-        </div>
-
-        <div id="completedFields" class="space-y-3 border-t border-slate-100 pt-3">
-          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
-            <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
-            <div><b>อัตราสิ้นเปลืองรวมของรถที่ใช้:</b> <span id="lblJobFuelRate" class="font-bold text-amber-700">0</span> ลิตร/วัน</div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">วันเริ่มทำงานจริง *</label>
-              <input type="date" id="actModalStart" onchange="calcActualDaysModal(true)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">วันเสร็จสิ้นงานจริง *</label>
-              <input type="date" id="actModalEnd" onchange="calcActualDaysModal(true)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">จำนวนวันจริง</label>
-              <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">น้ำมันเชื้อเพลิงใช้จริง (ลิตร) *</label>
-              <input type="number" step="0.1" id="actModalFuel" oninput="calcActualDaysModal(false)" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-amber-600 outline-none focus:border-amber-500">
-            </div>
-          </div>
-
+        <div class="space-y-3 text-xs sm:text-sm">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">ยอดเงินตัดงบ Easy Pass สรุปสุดท้าย (บาท)</label>
-            <input type="number" id="actModalAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600 text-base">
+            <label class="block font-bold text-slate-700 mb-1">สถานะการปฏิบัติงาน *</label>
+            <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+              <option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option>
+              <option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option>
+              <option value="มีปัญหา/อุปสรรค">มีปัญหา / อุปสรรค</option>
+            </select>
+          </div>
+
+          <div id="issueContainer" class="hidden">
+            <label class="block font-bold text-rose-700 mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
+            <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500"></textarea>
+          </div>
+
+          <div id="completedFields" class="space-y-3 border-t border-slate-100 pt-3">
+            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex justify-between items-center">
+              <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
+              <input type="hidden" id="actJobOilPriceVal" value="35.00">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">วันเริ่มทำงานจริง *</label>
+                <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">วันเสร็จสิ้นงานจริง *</label>
+                <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+              </div>
+              <div class="col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">จำนวนวันปฏิบัติงานจริง</label>
+                <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700">
+              </div>
+            </div>
+
+            <div class="col-span-2 space-y-2">
+              <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันใช้จริงประจำรถ</label>
+              <div id="actMachineCheckboxes" class="border border-slate-200 rounded-2xl p-3 max-h-64 overflow-y-auto space-y-3 bg-slate-50 text-xs"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">น้ำมันเชื้อเพลิงใช้จริงรวม (ลิตร)</label>
+                <input type="number" id="actModalFuel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-amber-600">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">ยอดเงินตัดงบ Easy Pass สรุปสุดท้าย (บาท)</label>
+                <input type="number" id="actModalAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600">
+              </div>
+            </div>
+
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-800 mb-1"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงานจริง</label>
+              <div id="actOperatorCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-32 overflow-y-auto space-y-1 bg-slate-50 text-xs"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-        <button onclick="closeActualModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-        <button onclick="saveActualProgressFromModal()" class="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+          <button onclick="closeActualModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveActualProgressFromModal()" class="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
+        </div>
       </div>
     </div>
   </div>
@@ -598,7 +610,6 @@
           <input type="text" id="editMachineEq" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
         </div>
 
-        <!-- กรอบเกณฑ์การใช้น้ำมัน 4 ช่อง เรียงจากซ้ายไปขวา (กรอกอิสระ) -->
         <div class="col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-2">
           <label class="block text-xs font-black text-amber-950"><i class="fa-solid fa-gas-pump mr-1 text-amber-600"></i> เกณฑ์การใช้น้ำมัน</label>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -817,7 +828,6 @@
              GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex) || {};
     }
 
-    // อัปเดตสิทธิ์การเข้าถึง UI
     function updateRoleUI() {
       const btnReq = document.getElementById('btnCreateRequest');
       const btnSum = document.getElementById('btn-summaryTab');
@@ -1075,7 +1085,6 @@
       });
     }
 
-    // Render ตารางติดตามแผนปฏิบัติงาน (แยกสิทธิ์ปุ่มควบคุมตาม Role)
     function renderJobsTable() {
       const container = document.getElementById('jobsTableContainer');
       container.innerHTML = '';
@@ -1168,27 +1177,34 @@
       document.getElementById('modalPlanEndDate').value = job.planEndDate || job.reqEndDate || '';
       document.getElementById('modalPlanOilPrice').value = job.planOilPrice || 35.00;
 
-      const mContainer = document.getElementById('modalMachineCheckboxes');
-      mContainer.innerHTML = '';
-      const selectedMachines = job.assignedMachine ? job.assignedMachine.split(', ') : [];
-      
-      GLOBAL_DATA.machines.forEach((m, idx) => {
-        const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
-        const mKey = `pm_${m.rowIndex}`;
+      renderPerMachineCheckboxes('modalMachineCheckboxes', 'modal', job.assignedMachine);
+      renderOperatorCheckboxes('modalOperatorCheckboxes', 'modal', job.assignedOperator);
 
+      recalculatePerMachineFuel('modal');
+      document.getElementById('planModal').classList.remove('hidden');
+    }
+
+    function renderPerMachineCheckboxes(containerId, prefix, selectedStr) {
+      const mContainer = document.getElementById(containerId);
+      mContainer.innerHTML = '';
+      const selectedMachines = selectedStr ? selectedStr.split(', ') : [];
+      
+      GLOBAL_DATA.machines.forEach((m) => {
+        const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
+        const mKey = `${prefix}_pm_${m.rowIndex}`;
         const defaultMode = (m.ratePerKm > 0) ? 'PER_KM' : 'PER_DAY';
 
         mContainer.innerHTML += `
           <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="${mKey}_chk" name="chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}')" class="rounded text-indigo-600 w-4 h-4">
+              <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}', '${prefix}')" class="rounded text-indigo-600 w-4 h-4">
               <span class="font-extrabold text-slate-900 text-sm">${m.name}</span>
             </label>
 
             <div id="${mKey}_panel" class="${isChecked ? '' : 'hidden'} bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2 pt-2">
               <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
                 <span class="font-bold text-slate-700">เงื่อนไขคิดน้ำมัน:</span>
-                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel()" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none">
+                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel('${prefix}')" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none">
                   <option value="PER_DAY" ${defaultMode === 'PER_DAY' ? 'selected' : ''}>คิดเป็นวัน (${m.fuelRate || 0} ลิตร/วัน)</option>
                   <option value="PER_HOUR">คิดเป็นชั่วโมง (${m.ratePerHour || 0} ลิตร/ชม.)</option>
                   <option value="PER_KM" ${defaultMode === 'PER_KM' ? 'selected' : ''}>คิดเป็นกิโลเมตร (${m.ratePerKm || 0} ลิตร/กม.)</option>
@@ -1198,7 +1214,7 @@
               <div id="${mKey}_inputBox" class="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <label class="block text-[10px] font-bold text-slate-500 mb-0.5">ระบุ ชม./วัน หรือ ระยะทาง กม.</label>
-                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel()" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
+                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel('${prefix}')" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-amber-700 mb-0.5">ลิตรรวมคันนี้</label>
@@ -1209,46 +1225,57 @@
           </div>
         `;
       });
+    }
 
-      const oContainer = document.getElementById('modalOperatorCheckboxes');
+    function renderOperatorCheckboxes(containerId, prefix, selectedStr) {
+      const oContainer = document.getElementById(containerId);
       oContainer.innerHTML = '';
-      const selectedOperators = job.assignedOperator ? job.assignedOperator.split(', ') : [];
+      const selectedOperators = selectedStr ? selectedStr.split(', ') : [];
 
       GLOBAL_DATA.operators.forEach(o => {
         const isChecked = selectedOperators.includes(o.name) ? 'checked' : '';
         oContainer.innerHTML += `
           <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer">
-            <input type="checkbox" name="chkOperator" value="${o.name}" ${isChecked} class="rounded text-indigo-600">
+            <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-indigo-600">
             <span><b>${o.name}</b> (${o.position})</span>
           </label>
         `;
       });
-
-      recalculatePerMachineFuel();
-      document.getElementById('planModal').classList.remove('hidden');
     }
 
-    function toggleMachineCalcPanel(mKey) {
+    function toggleMachineCalcPanel(mKey, prefix) {
       const chk = document.getElementById(`${mKey}_chk`);
       const panel = document.getElementById(`${mKey}_panel`);
       if (chk && panel) {
         if (chk.checked) panel.classList.remove('hidden'); else panel.classList.add('hidden');
       }
-      recalculatePerMachineFuel();
+      recalculatePerMachineFuel(prefix);
     }
 
-    function recalculatePerMachineFuel() {
-      const s = document.getElementById('modalPlanStartDate').value;
-      const e = document.getElementById('modalPlanEndDate').value;
-      const oilPrice = parseFloat(document.getElementById('modalPlanOilPrice').value) || 0;
+    function recalculatePerMachineFuel(prefix = 'modal') {
+      let s = '', e = '', oilPrice = 0;
+
+      if (prefix === 'modal') {
+        s = document.getElementById('modalPlanStartDate').value;
+        e = document.getElementById('modalPlanEndDate').value;
+        oilPrice = parseFloat(document.getElementById('modalPlanOilPrice').value) || 0;
+      } else {
+        s = document.getElementById('actModalStart').value;
+        e = document.getElementById('actModalEnd').value;
+        oilPrice = parseFloat(document.getElementById('actJobOilPriceVal').value) || 35.00;
+      }
 
       const diffDays = calculateDaysBetween(s, e);
-      document.getElementById('modalPlanDays').value = diffDays;
+      if (prefix === 'modal') {
+        document.getElementById('modalPlanDays').value = diffDays;
+      } else {
+        document.getElementById('actModalDays').value = diffDays;
+      }
 
       let grandTotalFuelLiters = 0;
 
       GLOBAL_DATA.machines.forEach(m => {
-        const mKey = `pm_${m.rowIndex}`;
+        const mKey = `${prefix}_pm_${m.rowIndex}`;
         const chk = document.getElementById(`${mKey}_chk`);
         
         if (chk && chk.checked) {
@@ -1269,18 +1296,23 @@
         }
       });
 
-      document.getElementById('modalPlanFuel').value = grandTotalFuelLiters.toFixed(2);
-      document.getElementById('modalPlanFuelAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
+      if (prefix === 'modal') {
+        document.getElementById('modalPlanFuel').value = grandTotalFuelLiters.toFixed(2);
+        document.getElementById('modalPlanFuelAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
+      } else {
+        document.getElementById('actModalFuel').value = grandTotalFuelLiters.toFixed(2);
+        document.getElementById('actModalAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
+      }
     }
 
     function closePlanModal() { document.getElementById('planModal').classList.add('hidden'); }
 
     async function saveJobPlan() {
       const selMachines = [];
-      document.querySelectorAll('input[name="chkMachine"]:checked').forEach(c => selMachines.push(c.value));
+      document.querySelectorAll('input[name="modal_chkMachine"]:checked').forEach(c => selMachines.push(c.value));
 
       const selOperators = [];
-      document.querySelectorAll('input[name="chkOperator"]:checked').forEach(c => selOperators.push(c.value));
+      document.querySelectorAll('input[name="modal_chkOperator"]:checked').forEach(c => selOperators.push(c.value));
 
       const payload = {
         rowIndex: parseInt(document.getElementById('modalRowIndex').value),
@@ -1313,6 +1345,7 @@
       }
     }
 
+    // เปิด Modal อัปเดตงานจริงแบบยกชุด Per-Machine
     function openActualModal(rowIndex) {
       const job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
       if (!job) return;
@@ -1328,24 +1361,14 @@
       document.getElementById('actModalEnd').value = endDate;
       
       const jobOilPrice = parseFloat(job.planOilPrice) || 35.00;
-      const planDays = parseFloat(job.planDays) || 1;
-      const planFuelLiters = parseFloat(job.planFuelLiters) || 0;
-      const fuelRatePerDay = job.planFuelRatePerDay || (planFuelLiters / planDays);
-
       document.getElementById('lblJobOilPrice').innerText = jobOilPrice.toFixed(2);
-      document.getElementById('lblJobFuelRate').innerText = fuelRatePerDay.toFixed(2);
+      document.getElementById('actJobOilPriceVal').value = jobOilPrice;
 
-      document.getElementById('actModalFuel').setAttribute('data-oil-price', jobOilPrice);
-      document.getElementById('actModalFuel').setAttribute('data-fuel-rate', fuelRatePerDay);
+      renderPerMachineCheckboxes('actMachineCheckboxes', 'act', job.assignedMachine);
+      renderOperatorCheckboxes('actOperatorCheckboxes', 'act', job.assignedOperator);
 
       toggleCompletedFields();
-
-      if (job.actualFuelLiters && job.actualFuelLiters > 0) {
-        document.getElementById('actModalFuel').value = job.actualFuelLiters;
-        calcActualDaysModal(false);
-      } else {
-        calcActualDaysModal(true);
-      }
+      recalculatePerMachineFuel('act');
 
       document.getElementById('actualModal').classList.remove('hidden');
     }
@@ -1370,27 +1393,15 @@
       }
     }
 
-    function calcActualDaysModal(recalcFuel = true) {
-      const s = document.getElementById('actModalStart').value;
-      const e = document.getElementById('actModalEnd').value;
-      const jobOilPrice = parseFloat(document.getElementById('actModalFuel').getAttribute('data-oil-price')) || 35.00;
-      const fuelRatePerDay = parseFloat(document.getElementById('actModalFuel').getAttribute('data-fuel-rate')) || 0;
-
-      const diffDays = calculateDaysBetween(s, e);
-      document.getElementById('actModalDays').value = diffDays;
-      
-      let actualFuel = parseFloat(document.getElementById('actModalFuel').value) || 0;
-      if (recalcFuel) {
-        actualFuel = diffDays * fuelRatePerDay;
-        document.getElementById('actModalFuel').value = actualFuel.toFixed(2);
-      }
-
-      const totalAmount = actualFuel * jobOilPrice;
-      document.getElementById('actModalAmount').value = totalAmount.toFixed(2);
-    }
-
     async function saveActualProgressFromModal() {
       const status = document.getElementById('actJobStatus').value;
+
+      const selMachines = [];
+      document.querySelectorAll('input[name="act_chkMachine"]:checked').forEach(c => selMachines.push(c.value));
+
+      const selOperators = [];
+      document.querySelectorAll('input[name="act_chkOperator"]:checked').forEach(c => selOperators.push(c.value));
+
       const payload = {
         rowIndex: parseInt(document.getElementById('actRowIndex').value),
         jobProgressStatus: status,
@@ -1399,7 +1410,9 @@
         actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalEnd').value : '',
         actualDays: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseInt(document.getElementById('actModalDays').value) || 0 : 0,
         actualFuelLiters: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalFuel').value) || 0 : 0,
-        totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0
+        totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0,
+        assignedMachine: selMachines.join(', '),
+        assignedOperator: selOperators.join(', ')
       };
 
       const res = await callGAS('updateJobActualProgress', payload);
