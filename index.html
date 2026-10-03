@@ -20,7 +20,7 @@
 </head>
 <body class="text-slate-900 relative min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 pb-12 bg-slate-50">
 
-  <!-- TOAST NOTIFICATION CONTAINER (ขยับลงมา top-20 ไม่บัง Navbar) -->
+  <!-- TOAST NOTIFICATION CONTAINER (ตำแหน่ง top-20 ไม่บัง Navbar) -->
   <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- TOP NAVIGATION BAR -->
@@ -36,7 +36,7 @@
               ระบบเครื่องจักรกล & Easy Pass
             </span>
             <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
-              v2.5 Full Pro
+              v2.6 Per-Machine
             </span>
           </div>
         </div>
@@ -55,7 +55,7 @@
     </div>
   </nav>
 
-  <!-- NOTIFICATION WIDGET (FOR SUPER ADMIN) -->
+  <!-- NOTIFICATION WIDGET -->
   <div id="notificationWidget" class="hidden w-full px-4 sm:px-6 mt-4">
     <div onclick="switchTab('pendingTab')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 p-3.5 rounded-2xl shadow-sm border border-amber-400 flex items-center justify-between cursor-pointer transition">
       <div class="flex items-center space-x-3">
@@ -209,14 +209,25 @@
             <input type="text" id="newMachinePlate" placeholder="ทะเบียน" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
             <input type="text" id="newMachineAssetNo" placeholder="เลขครุภัณฑ์" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
             
-            <select id="newMachineCalcType" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500 font-bold">
-              <option value="PER_HOUR">คิดตามเวลา (ชั่วโมง/วัน)</option>
-              <option value="PER_KM">คิดตามระยะทาง (กิโลเมตร)</option>
-            </select>
-            <input type="number" step="0.1" id="newMachineRateKm" placeholder="เกณฑ์ ลิตร/กม. (เช่น 0.8)" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
-            <input type="number" step="0.1" id="newMachineRateHr" placeholder="เกณฑ์ ลิตร/ชม. (เช่น 23)" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
-            <input type="number" id="newMachineStdHr" value="6" placeholder="ชม.มาตรฐาน/วัน (เช่น 6)" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
-            
+            <div class="col-span-1 sm:col-span-2 md:col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/ชม.</label>
+                <input type="number" step="0.1" id="newMachineRateHr" oninput="calcNewMachineDailyRate()" placeholder="เช่น 23" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-amber-900 mb-1">ชม.มาตรฐาน/วัน</label>
+                <input type="number" id="newMachineStdHr" value="6" oninput="calcNewMachineDailyRate()" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/วัน (Auto)</label>
+                <input type="number" id="newMachineRateDay" readonly value="138" class="w-full border border-amber-200 rounded-xl p-2 bg-slate-100 text-amber-900 font-black outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/กม.</label>
+                <input type="number" step="0.1" id="newMachineRateKm" placeholder="เช่น 0.8" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+              </div>
+            </div>
+
             <input type="text" id="newMachineEq" placeholder="อุปกรณ์เสริมประจำรถ" class="col-span-1 sm:col-span-2 border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
             <div class="col-span-1 sm:col-span-2">
               <label class="block text-xs font-bold text-slate-700 mb-1">ภาพถ่ายเครื่องจักร</label>
@@ -407,11 +418,11 @@
     </div>
   </div>
 
-  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL (เพิ่มปุ่มปิด ✕ Sticky Header + ระบบ Universal Hybrid Calc) -->
+  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL (ระบบ Per-Machine Dynamic Fuel Calc) -->
   <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative flex flex-col">
       
-      <!-- STICKY HEADER พร้อมปุ่มกากบาทปิด ✕ -->
+      <!-- STICKY HEADER พร้อมปุ่มปิด ✕ -->
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
           <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน
@@ -438,11 +449,11 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
-            <input type="date" id="modalPlanStartDate" onchange="calcPlanDays()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
-            <input type="date" id="modalPlanEndDate" onchange="calcPlanDays()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
+            <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-900">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
@@ -450,41 +461,13 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันจัดแผน (บาท/ลิตร) *</label>
-            <input type="number" step="0.01" id="modalPlanOilPrice" oninput="calcPlanDays()" value="35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
+            <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel()" value="35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
           </div>
 
-          <!-- UNIVERSAL FUEL CALCULATION OPTIONS (4 โหมดคำนวณรองรับรถทุกคัน) -->
-          <div class="col-span-2 bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-200 space-y-2">
-            <label class="block text-xs font-bold text-indigo-950"><i class="fa-solid fa-calculator mr-1"></i> เลือกโหมดการคิดคำนวณค่าน้ำมันของโครงการ</label>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-indigo-100 cursor-pointer">
-                <input type="radio" name="fuelCalcMode" value="STD_DAY" checked onchange="calcPlanDays()" class="text-indigo-600">
-                <span>1. เหมาวันมาตรฐาน (6 ชม./วัน)</span>
-              </label>
-              <label class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-indigo-100 cursor-pointer">
-                <input type="radio" name="fuelCalcMode" value="CUSTOM_HOUR" onchange="calcPlanDays()" class="text-indigo-600">
-                <span>2. ระบุชั่วโมงทำงานจริง/วัน</span>
-              </label>
-              <label class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-indigo-100 cursor-pointer">
-                <input type="radio" name="fuelCalcMode" value="DISTANCE_KM" onchange="calcPlanDays()" class="text-indigo-600">
-                <span>3. คิดตามระยะทาง (กิโลเมตร)</span>
-              </label>
-              <label class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-indigo-100 cursor-pointer">
-                <input type="radio" name="fuelCalcMode" value="HYBRID_BOTH" onchange="calcPlanDays()" class="text-indigo-600">
-                <span>4. คิดผสม (ชั่วโมง + กิโลเมตร)</span>
-              </label>
-            </div>
-
-            <!-- Dynamic Fields แสดงผลตามโหมดที่เลือก -->
-            <div id="hourInputBox" class="hidden pt-1">
-              <label class="block text-[11px] font-bold text-indigo-900 mb-1">ระบุจำนวนชั่วโมงทำงานต่อวัน (สำหรับโหมดคิดตามชั่วโมง)</label>
-              <input type="number" step="0.5" id="modalPlanHoursPerDay" oninput="calcPlanDays()" value="6" placeholder="เช่น 6 หรือ 8 ชั่วโมง" class="w-full bg-white border border-indigo-300 rounded-xl p-2 font-bold text-indigo-900 outline-none">
-            </div>
-
-            <div id="kmInputBox" class="hidden pt-1">
-              <label class="block text-[11px] font-bold text-amber-900 mb-1">ระบุระยะทางวิ่งรวมตามแผน (กิโลเมตร)</label>
-              <input type="number" step="0.1" id="modalPlanKm" oninput="calcPlanDays()" value="0" placeholder="เช่น 50 กม." class="w-full bg-white border border-amber-300 rounded-xl p-2 font-bold text-amber-900 outline-none">
-            </div>
+          <!-- PER-MACHINE DYNAMIC SELECTION CONTAINER -->
+          <div class="col-span-2 space-y-2">
+            <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</label>
+            <div id="modalMachineCheckboxes" class="border border-slate-200 rounded-2xl p-3 max-h-64 overflow-y-auto space-y-3 bg-slate-50 text-xs"></div>
           </div>
 
           <div>
@@ -494,11 +477,6 @@
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ประมาณการค่าน้ำมันรวม (บาท)</label>
             <input type="number" id="modalPlanFuelAmount" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-black text-emerald-600">
-          </div>
-          
-          <div class="col-span-2">
-            <label class="block text-xs font-bold text-slate-800 mb-1"><i class="fa-solid fa-truck-monster text-amber-500 mr-1"></i> เลือกเครื่องจักรกล</label>
-            <div id="modalMachineCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1.5 bg-slate-50 text-xs"></div>
           </div>
 
           <div class="col-span-2">
@@ -581,7 +559,7 @@
     </div>
   </div>
 
-  <!-- MODAL 6: MODAL แก้ไข MASTER MACHINE (เพิ่มปุ่มแก้ไขข้อมูล Master) -->
+  <!-- MODAL 6: MODAL แก้ไข MASTER MACHINE -->
   <div id="editMachineModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -616,26 +594,23 @@
           <input type="text" id="editMachineEq" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
         </div>
 
-        <!-- แก้ไขเกณฑ์น้ำมัน 3 มิติ -->
+        <!-- ช่องกรอกเกณฑ์น้ำมัน 4 ช่องชัดเจน -->
         <div class="col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 grid grid-cols-2 md:grid-cols-4 gap-2.5">
           <div>
-            <label class="block text-[11px] font-bold text-amber-900 mb-1">โหมดคำนวณหลัก</label>
-            <select id="editMachineCalcType" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
-              <option value="PER_HOUR">เวลา (ชั่วโมง/วัน)</option>
-              <option value="PER_KM">ระยะทาง (กิโลเมตร)</option>
-            </select>
+            <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/ชม.</label>
+            <input type="number" step="0.1" id="editMachineRateHr" oninput="calcEditMachineDailyRate()" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-amber-900 mb-1">ชม.มาตรฐาน/วัน</label>
+            <input type="number" id="editMachineStdHr" oninput="calcEditMachineDailyRate()" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/วัน (Auto)</label>
+            <input type="number" id="editMachineRateDay" readonly class="w-full border border-amber-200 rounded-xl p-2 bg-slate-100 text-amber-900 font-black outline-none">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/กม.</label>
             <input type="number" step="0.1" id="editMachineRateKm" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-amber-900 mb-1">เกณฑ์ ลิตร/ชม.</label>
-            <input type="number" step="0.1" id="editMachineRateHr" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-amber-900 mb-1">ชม.มาตรฐาน/วัน</label>
-            <input type="number" id="editMachineStdHr" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
           </div>
         </div>
 
@@ -728,7 +703,6 @@
 
   <!-- CLIENT SCRIPT -->
   <script>
-    // Web App URL ล่าสุดที่คุณบอยส่งมา
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
@@ -1168,6 +1142,9 @@
       });
     }
 
+    /**
+     * ระบบ Per-Machine Dynamic Fuel Calculation
+     */
     function openPlanModal(rowIndex) {
       let job = GLOBAL_DATA.pendingRequests.find(j => j.rowIndex === rowIndex);
       if (!job) job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
@@ -1184,15 +1161,42 @@
       mContainer.innerHTML = '';
       const selectedMachines = job.assignedMachine ? job.assignedMachine.split(', ') : [];
       
-      GLOBAL_DATA.machines.forEach(m => {
+      GLOBAL_DATA.machines.forEach((m, idx) => {
         const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
-        const fuelLabel = `${m.fuelRate || 0} ลิตร/วัน (${m.ratePerHour || 0} ลิตร/ชม.) | ${m.ratePerKm || 0} ลิตร/กม.`;
-        
+        const mKey = `pm_${m.rowIndex}`;
+
+        const defaultMode = (m.calcType === 'PER_KM' || m.ratePerKm > 0) ? 'PER_KM' : 'PER_DAY';
+
         mContainer.innerHTML += `
-          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer">
-            <input type="checkbox" name="chkMachine" value="${m.name}" data-rate-day="${m.fuelRate || 0}" data-rate-hr="${m.ratePerHour || 0}" data-rate-km="${m.ratePerKm || 0}" ${isChecked} onchange="calcPlanDays()" class="rounded text-indigo-600">
-            <span><b>${m.name}</b> <span class="text-slate-500 text-[11px]">(${fuelLabel})</span></span>
-          </label>
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="${mKey}_chk" name="chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}')" class="rounded text-indigo-600 w-4 h-4">
+              <span class="font-extrabold text-slate-900 text-sm">${m.name}</span>
+            </label>
+
+            <!-- Panel ตั้งค่าคิดค่าน้ำมันเฉพาะรถคันนี้ -->
+            <div id="${mKey}_panel" class="${isChecked ? '' : 'hidden'} bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2 pt-2">
+              <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
+                <span class="font-bold text-slate-700">เงื่อนไขคิดน้ำมัน:</span>
+                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel()" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none">
+                  <option value="PER_DAY" ${defaultMode === 'PER_DAY' ? 'selected' : ''}>คิดเป็นวัน (${m.fuelRate || 0} ลิตร/วัน)</option>
+                  <option value="PER_HOUR">คิดเป็นชั่วโมง (${m.ratePerHour || 0} ลิตร/ชม.)</option>
+                  <option value="PER_KM" ${defaultMode === 'PER_KM' ? 'selected' : ''}>คิดเป็นกิโลเมตร (${m.ratePerKm || 0} ลิตร/กม.)</option>
+                </select>
+              </div>
+
+              <div id="${mKey}_inputBox" class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">ระบุ ชม./วัน หรือ ระยะทาง กม.</label>
+                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel()" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-amber-700 mb-0.5">ลิตรรวมคันนี้</label>
+                  <input type="number" id="${mKey}_subFuel" readonly value="0" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-1.5 font-black text-amber-700 outline-none">
+                </div>
+              </div>
+            </div>
+          </div>
         `;
       });
 
@@ -1210,16 +1214,20 @@
         `;
       });
 
-      calcPlanDays();
+      recalculatePerMachineFuel();
       document.getElementById('planModal').classList.remove('hidden');
     }
 
-    function closePlanModal() { document.getElementById('planModal').classList.add('hidden'); }
+    function toggleMachineCalcPanel(mKey) {
+      const chk = document.getElementById(`${mKey}_chk`);
+      const panel = document.getElementById(`${mKey}_panel`);
+      if (chk && panel) {
+        if (chk.checked) panel.classList.remove('hidden'); else panel.classList.add('hidden');
+      }
+      recalculatePerMachineFuel();
+    }
 
-    /**
-     * ระบบคำนวณค่าน้ำมัน Universal Hybrid (รองรับ 4 โหมดคำนวณ)
-     */
-    function calcPlanDays() {
+    function recalculatePerMachineFuel() {
       const s = document.getElementById('modalPlanStartDate').value;
       const e = document.getElementById('modalPlanEndDate').value;
       const oilPrice = parseFloat(document.getElementById('modalPlanOilPrice').value) || 0;
@@ -1227,49 +1235,35 @@
       const diffDays = calculateDaysBetween(s, e);
       document.getElementById('modalPlanDays').value = diffDays;
 
-      const calcMode = document.querySelector('input[name="fuelCalcMode"]:checked').value;
+      let grandTotalFuelLiters = 0;
 
-      const hourBox = document.getElementById('hourInputBox');
-      const kmBox = document.getElementById('kmInputBox');
+      GLOBAL_DATA.machines.forEach(m => {
+        const mKey = `pm_${m.rowIndex}`;
+        const chk = document.getElementById(`${mKey}_chk`);
+        
+        if (chk && chk.checked) {
+          const calcMode = document.getElementById(`${mKey}_calcMode`).value;
+          const customVal = parseFloat(document.getElementById(`${mKey}_customVal`).value) || 0;
+          let subFuel = 0;
 
-      if (calcMode === 'STD_DAY') {
-        hourBox.classList.add('hidden');
-        kmBox.classList.add('hidden');
-      } else if (calcMode === 'CUSTOM_HOUR') {
-        hourBox.classList.remove('hidden');
-        kmBox.classList.add('hidden');
-      } else if (calcMode === 'DISTANCE_KM') {
-        hourBox.classList.add('hidden');
-        kmBox.classList.remove('hidden');
-      } else if (calcMode === 'HYBRID_BOTH') {
-        hourBox.classList.remove('hidden');
-        kmBox.classList.remove('hidden');
-      }
+          if (calcMode === 'PER_DAY') {
+            subFuel = diffDays * (m.fuelRate || (m.ratePerHour * (m.standardHoursPerDay || 6)));
+          } else if (calcMode === 'PER_HOUR') {
+            subFuel = diffDays * customVal * (m.ratePerHour || 0);
+          } else if (calcMode === 'PER_KM') {
+            subFuel = customVal * (m.ratePerKm || 0);
+          }
 
-      const hoursPerDay = parseFloat(document.getElementById('modalPlanHoursPerDay').value) || 6;
-      const kmDistance = parseFloat(document.getElementById('modalPlanKm').value) || 0;
-
-      let totalFuelLiters = 0;
-
-      document.querySelectorAll('input[name="chkMachine"]:checked').forEach(chk => {
-        const rateDay = parseFloat(chk.getAttribute('data-rate-day')) || 0;
-        const rateHr = parseFloat(chk.getAttribute('data-rate-hr')) || 0;
-        const rateKm = parseFloat(chk.getAttribute('data-rate-km')) || 0;
-
-        if (calcMode === 'STD_DAY') {
-          totalFuelLiters += diffDays * rateDay;
-        } else if (calcMode === 'CUSTOM_HOUR') {
-          totalFuelLiters += diffDays * hoursPerDay * rateHr;
-        } else if (calcMode === 'DISTANCE_KM') {
-          totalFuelLiters += kmDistance * rateKm;
-        } else if (calcMode === 'HYBRID_BOTH') {
-          totalFuelLiters += (diffDays * hoursPerDay * rateHr) + (kmDistance * rateKm);
+          document.getElementById(`${mKey}_subFuel`).value = subFuel.toFixed(2);
+          grandTotalFuelLiters += subFuel;
         }
       });
 
-      document.getElementById('modalPlanFuel').value = totalFuelLiters.toFixed(2);
-      document.getElementById('modalPlanFuelAmount').value = (totalFuelLiters * oilPrice).toFixed(2);
+      document.getElementById('modalPlanFuel').value = grandTotalFuelLiters.toFixed(2);
+      document.getElementById('modalPlanFuelAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
     }
+
+    function closePlanModal() { document.getElementById('planModal').classList.add('hidden'); }
 
     async function saveJobPlan() {
       const selMachines = [];
@@ -1624,6 +1618,18 @@
       renderMasterVillages();
     }
 
+    function calcNewMachineDailyRate() {
+      const hr = parseFloat(document.getElementById('newMachineRateHr').value) || 0;
+      const std = parseFloat(document.getElementById('newMachineStdHr').value) || 6;
+      document.getElementById('newMachineRateDay').value = (hr * std).toFixed(0);
+    }
+
+    function calcEditMachineDailyRate() {
+      const hr = parseFloat(document.getElementById('editMachineRateHr').value) || 0;
+      const std = parseFloat(document.getElementById('editMachineStdHr').value) || 6;
+      document.getElementById('editMachineRateDay').value = (hr * std).toFixed(0);
+    }
+
     function renderMachineOperatorCheckboxes(containerId, selectedArray) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -1645,7 +1651,6 @@
       });
     }
 
-    // Render เครื่องจักร พร้อมปุ่มแก้ไข (Edit Button)
     function renderMasterMachines() {
       const grid = document.getElementById('masterMachineGrid');
       grid.innerHTML = '';
@@ -1730,7 +1735,6 @@
       });
     }
 
-    // Render ช่างผู้ขับ พร้อมปุ่มแก้ไข (Edit Button)
     function renderMasterOperators() {
       const grid = document.getElementById('masterOperatorGrid');
       grid.innerHTML = '';
@@ -1792,7 +1796,6 @@
       });
     }
 
-    // Render หมู่บ้าน พร้อมปุ่มแก้ไข (Edit Button)
     function renderMasterVillages() {
       const grid = document.getElementById('masterVillageGrid');
       grid.innerHTML = '';
@@ -1810,7 +1813,6 @@
       });
     }
 
-    // ฟังก์ชันจัดการ Modal แก้ไข Master Machine
     function openEditMachineModal(rowIndex) {
       const m = GLOBAL_DATA.machines.find(item => item.rowIndex === rowIndex);
       if (!m) return;
@@ -1821,11 +1823,12 @@
       document.getElementById('editMachinePlate').value = m.plate || '';
       document.getElementById('editMachineAssetNo').value = m.assetNo || '';
       document.getElementById('editMachineEq').value = m.equipment || '';
-      document.getElementById('editMachineCalcType').value = m.calcType || 'PER_HOUR';
       document.getElementById('editMachineRateKm').value = m.ratePerKm || 0;
       document.getElementById('editMachineRateHr').value = m.ratePerHour || 0;
       document.getElementById('editMachineStdHr').value = m.standardHoursPerDay || 6;
       document.getElementById('editMachineImgOld').value = m.imgUrl || '';
+
+      calcEditMachineDailyRate();
 
       const selOperators = m.caretaker ? m.caretaker.split(', ') : [];
       renderMachineOperatorCheckboxes('editMachineOperatorCheckboxes', selOperators);
@@ -1842,11 +1845,10 @@
       const selOperators = [];
       document.querySelectorAll('input[name="editMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
 
-      const calcType = document.getElementById('editMachineCalcType').value;
       const rateKm = parseFloat(document.getElementById('editMachineRateKm').value) || 0;
       const rateHr = parseFloat(document.getElementById('editMachineRateHr').value) || 0;
       const stdHr = parseFloat(document.getElementById('editMachineStdHr').value) || 6;
-      const fuelRateDay = calcType === 'PER_KM' ? 0 : (rateHr * stdHr);
+      const fuelRateDay = parseFloat(document.getElementById('editMachineRateDay').value) || (rateHr * stdHr);
 
       const data = {
         rowIndex: parseInt(document.getElementById('editMachineRowIndex').value),
@@ -1855,7 +1857,6 @@
         plate: document.getElementById('editMachinePlate').value,
         assetNo: document.getElementById('editMachineAssetNo').value,
         equipment: document.getElementById('editMachineEq').value,
-        calcType: calcType,
         ratePerKm: rateKm,
         ratePerHour: rateHr,
         standardHoursPerDay: stdHr,
@@ -1882,7 +1883,6 @@
       });
     }
 
-    // ฟังก์ชันจัดการ Modal แก้ไข Master Operator
     function openEditOpModal(rowIndex) {
       const o = GLOBAL_DATA.operators.find(item => item.rowIndex === rowIndex);
       if (!o) return;
@@ -1933,7 +1933,6 @@
       });
     }
 
-    // ฟังก์ชันจัดการ Modal แก้ไข Master Village
     function openEditVillageModal(rowIndex) {
       const v = GLOBAL_DATA.villages.find(item => item.rowIndex === rowIndex);
       if (!v) return;
@@ -2018,11 +2017,10 @@
       const selOperators = [];
       document.querySelectorAll('input[name="newMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
 
-      const calcType = document.getElementById('newMachineCalcType').value;
       const rateKm = parseFloat(document.getElementById('newMachineRateKm').value) || 0;
       const rateHr = parseFloat(document.getElementById('newMachineRateHr').value) || 0;
       const stdHr = parseFloat(document.getElementById('newMachineStdHr').value) || 6;
-      const fuelRateDay = calcType === 'PER_KM' ? 0 : (rateHr * stdHr);
+      const fuelRateDay = parseFloat(document.getElementById('newMachineRateDay').value) || (rateHr * stdHr);
 
       const data = {
         name: document.getElementById('newMachineName').value,
@@ -2030,7 +2028,6 @@
         plate: document.getElementById('newMachinePlate').value,
         assetNo: document.getElementById('newMachineAssetNo').value,
         fuelRate: fuelRateDay,
-        calcType: calcType,
         ratePerKm: rateKm,
         ratePerHour: rateHr,
         standardHoursPerDay: stdHr,
