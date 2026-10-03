@@ -3,383 +3,2167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ระบบบริหารงานเครื่องจักรกล - กองช่าง อบต.ท่าก๊อ</title>
+  <title>ระบบบริหารจัดการเครื่องจักรกล & Easy Pass</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
-    body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+    body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .card-hover-effect { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover-effect:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
   </style>
 </head>
-<body class="h-full text-slate-900 bg-slate-50 flex flex-col antialiased">
+<body class="text-slate-900 relative min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 pb-12 bg-slate-50">
 
-  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-3 pointer-events-none"></div>
 
-  <!-- Header Navigation -->
-  <header class="glass-header text-slate-900 sticky top-0 z-40 border-b border-slate-200 shadow-sm">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-md shrink-0">
-            <i class="fa-solid fa-truck-monster text-lg"></i>
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
+    <div class="w-full px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-truck-monster text-slate-950 text-xl"></i>
           </div>
           <div>
-            <h1 class="font-black text-base sm:text-lg leading-tight text-slate-900">ระบบบริหารงานเครื่องจักรกล</h1>
-            <p class="text-[11px] text-amber-600 font-bold">กองช่าง อบต.ท่าก๊อ</p>
+            <span class="font-black text-lg sm:text-xl tracking-tight text-white">
+              ระบบเครื่องจักรกล & Easy Pass
+            </span>
+            <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400">
+              v3.0 Wide Layout
+            </span>
           </div>
         </div>
-
-        <div class="flex items-center gap-2">
-          <button onclick="openReqModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition active:scale-95 flex items-center gap-1.5">
-            <i class="fa-solid fa-plus-circle"></i> <span class="hidden sm:inline">ยื่นคำขอเครื่องจักร</span>
+        <div class="flex items-center space-x-2.5">
+          <button id="btnCreateRequest" onclick="openRequestModal()" class="hidden bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle text-base"></i> ยื่นคำขอ
           </button>
-
-          <div id="adminArea">
-            <button id="btnLogin" onclick="openLoginModal()" class="bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-black shadow-sm transition">
-              <i class="fa-solid fa-key text-amber-400 mr-1"></i> Admin
-            </button>
-            <div id="adminBadge" class="hidden flex items-center gap-1.5">
-              <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs px-3 py-1.5 rounded-xl font-extrabold">Admin Active</span>
-              <button onclick="logoutAdmin()" class="bg-rose-50 text-rose-600 border border-rose-200 p-2 rounded-xl" title="ออกจากระบบ"><i class="fa-solid fa-power-off text-xs"></i></button>
-            </div>
-          </div>
+          <span id="userBadge" class="hidden sm:inline-block bg-slate-800 border border-slate-700 text-amber-400 text-xs px-3.5 py-1.5 rounded-full font-bold">
+            Guest
+          </span>
+          <button id="authBtn" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+          </button>
         </div>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <!-- Main Body -->
-  <main class="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 flex-grow space-y-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-3">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-amber-500"></i> รายการคำขอปฏิบัติงานเครื่องจักรกล
+  <!-- NOTIFICATION WIDGET -->
+  <div id="notificationWidget" class="hidden w-full px-4 sm:px-6 mt-4">
+    <div onclick="switchTab('pendingTab')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 p-3.5 rounded-2xl shadow-sm border border-amber-400 flex items-center justify-between cursor-pointer transition">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-black">
+          <i class="fa-solid fa-bell animate-bounce"></i>
+        </div>
+        <span class="font-bold text-xs sm:text-sm">คุณมีคำขอขอใช้เครื่องจักรกลรอการพิจารณาอนุมัติ</span>
+      </div>
+      <span class="bg-slate-950 text-amber-400 font-black text-xs px-3 py-1 rounded-full"><span id="widgetCount">0</span> รายการ</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="w-full px-4 sm:px-6 py-5">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex flex-wrap gap-2 mb-5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-fit">
+      <button onclick="switchTab('trackingTab')" id="btn-trackingTab" class="tab-btn bg-slate-900 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-amber-400"></i> 1. ติดตามแผนปฏิบัติงาน
+      </button>
+      <button onclick="switchTab('pendingTab')" id="btn-pendingTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
+        <i class="fa-solid fa-hourglass-half text-amber-500"></i> 2. คำขอรออนุมัติ
+        <span id="pendingBadgeTab" class="hidden ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
+        <i class="fa-solid fa-receipt text-emerald-600"></i> 3. สรุปผลส่งตัดเงิน Easy Pass
+        <span id="easyPassBadgeTab" class="hidden ml-1 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-chart-pie text-purple-600"></i> 4. Dashboard สรุปผล
+      </button>
+      <button onclick="switchTab('masterTab')" id="btn-masterTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-gears text-slate-500"></i> 5. บริหารจัดการข้อมูล
+      </button>
+    </div>
+
+    <!-- TAB 1: TRACKING -->
+    <div id="trackingTab" class="tab-content space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center flex-wrap gap-3">
+        <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+          ตารางติดตามแผนปฏิบัติงาน
         </h2>
-        <button onclick="fetchData()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold transition">
-          <i class="fa-solid fa-rotate mr-1"></i> รีเฟรช
+        <div class="relative w-full sm:w-80">
+          <input type="text" id="searchTracking" onkeyup="filterTrackingTable()" placeholder="ค้นหารหัส, หมู่บ้าน, ช่าง, รถ..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-slate-900 focus:bg-white outline-none transition placeholder-slate-400">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs sm:text-sm"></i>
+        </div>
+      </div>
+      <div id="jobsTableContainer" class="space-y-3"></div>
+    </div>
+
+    <!-- TAB 2: PENDING -->
+    <div id="pendingTab" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center flex-wrap gap-3">
+        <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+          คำร้องขอรับบริการรอพิจารณาอนุมัติ
+        </h2>
+        <span class="text-xs text-slate-500 font-medium">* กดที่การ์ดเพื่ออ่านข้อมูลก่อนพิจารณาอนุมัติ/ปฏิเสธ</span>
+      </div>
+      <div id="pendingRequestsContainer" class="space-y-3"></div>
+    </div>
+
+    <!-- TAB 3: EASY PASS SUMMARY -->
+    <div id="summaryTab" class="tab-content hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            สรุปผลงานจริง และประวัติการส่งตัดเงิน Easy Pass (28 หมู่บ้าน)
+          </h2>
+          <div class="relative w-full sm:w-80">
+            <input type="text" id="searchEasyPass" onkeyup="filterEasyPassTable()" placeholder="ค้นหารหัส, หมู่บ้าน, TX ID..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition placeholder-slate-400">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs sm:text-sm"></i>
+          </div>
+        </div>
+        <div id="summaryJobsContainer" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ANALYTICS DASHBOARD -->
+    <div id="analyticsTab" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center text-2xl font-bold">
+            <i class="fa-solid fa-truck-moving"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">จำนวนโครงการทั้งหมด</div>
+            <div id="dashTotalJobs" class="text-3xl font-black text-slate-900 mt-0.5">0</div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center text-2xl font-bold">
+            <i class="fa-solid fa-gas-pump"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">รวมการใช้น้ำมันเชื้อเพลิง</div>
+            <div id="dashTotalFuel" class="text-3xl font-black text-amber-600 mt-0.5">0 ลิตร</div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-5">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">งบตัดชำระ Easy Pass สะสม</div>
+            <div id="dashTotalAmount" class="text-3xl font-black text-emerald-600 mt-0.5">0 บาท</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-chart-column text-amber-500"></i> สรุปการใช้น้ำมันเชื้อเพลิงแยกตามเครื่องจักร (ลิตร)
+          </h3>
+          <div class="h-72"><canvas id="fuelByMachineChart"></canvas></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-chart-bar text-emerald-600"></i> สรุปงบประมาณ Easy Pass สะสมแยกตามหมู่บ้าน (บาท)
+          </h3>
+          <div class="h-72"><canvas id="budgetByVillageChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: MASTER MANAGEMENT -->
+    <div id="masterTab" class="tab-content hidden space-y-6">
+      <!-- SECTION 1: เครื่องจักร -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-truck-monster text-amber-500 text-xl"></i> บริหารเครื่องจักร & อุปกรณ์
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">รูปภาพจะถูกจัดเก็บเข้าโฟลเดอร์ย่อย Machine_Images</p>
+          </div>
+          <button onclick="toggleAddMachineForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> เพิ่มเครื่องจักรใหม่
+          </button>
+        </div>
+
+        <div id="addMachineForm" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <h4 class="font-bold text-sm text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-square-plus text-amber-500"></i> กรอกข้อมูลเครื่องจักรใหม่</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm">
+            <input type="text" id="newMachineName" placeholder="ชื่อเครื่องจักร / ชนิดรถ *" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+            <input type="text" id="newMachineBrand" placeholder="ยี่ห้อ (เช่น VOLVO)" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+            <input type="text" id="newMachinePlate" placeholder="ทะเบียน" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+            <input type="text" id="newMachineAssetNo" placeholder="เลขครุภัณฑ์" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+            
+            <div class="col-span-1 sm:col-span-2 md:col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-2">
+              <label class="block text-xs font-black text-amber-950"><i class="fa-solid fa-gas-pump mr-1 text-amber-600"></i> เกณฑ์การใช้น้ำมัน</label>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <div>
+                  <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อกิโล</label>
+                  <input type="number" step="0.1" id="newMachineRateKm" placeholder="เช่น 0.8" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อชั่วโมง</label>
+                  <input type="number" step="0.1" id="newMachineRateHr" placeholder="เช่น 23" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อวัน</label>
+                  <input type="number" step="0.1" id="newMachineRateDay" placeholder="เช่น 138" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-amber-900 mb-1">ชั่วโมงมาตรฐานต่อวัน</label>
+                  <input type="number" id="newMachineStdHr" value="6" placeholder="เช่น 6" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+                </div>
+              </div>
+            </div>
+
+            <input type="text" id="newMachineEq" placeholder="อุปกรณ์เสริมประจำรถ" class="col-span-1 sm:col-span-2 border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+            <div class="col-span-1 sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">ภาพถ่ายเครื่องจักร</label>
+              <input type="file" id="newMachineFileInput" accept="image/*" class="w-full text-xs text-slate-600 border border-slate-300 rounded-xl p-1.5 bg-white">
+            </div>
+
+            <div class="col-span-1 sm:col-span-2 md:col-span-4">
+              <label class="block text-xs font-bold text-slate-800 mb-1">เลือกผู้ดูแล / ช่างผู้ขับประจำรถ (เลือกได้หลายคน)</label>
+              <div id="newMachineOperatorCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1.5 bg-white text-xs"></div>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-2 pt-2">
+            <button onclick="toggleAddMachineForm()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-200 rounded-xl transition">ยกเลิก</button>
+            <button id="btnSaveAddMachine" onclick="addMasterMachine()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกเครื่องจักร</button>
+          </div>
+        </div>
+
+        <div id="masterMachineGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- SECTION 2: ช่างผู้ขับ -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-user-gear text-blue-600 text-xl"></i> จัดการผู้ขับ / ช่างผู้รับผิดชอบ
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">รูปภาพจะถูกจัดเก็บเข้าโฟลเดอร์ย่อย Operator_Images</p>
+          </div>
+          <button onclick="toggleAddOpForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus"></i> เพิ่มช่างผู้ขับใหม่
+          </button>
+        </div>
+
+        <div id="addOpForm" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <h4 class="font-bold text-sm text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-blue-600"></i> กรอกข้อมูลช่างผู้ขับใหม่</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+            <input type="text" id="newOpName" placeholder="ชื่อ-นามสกุล ช่าง *" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-blue-600">
+            <input type="text" id="newOpPosition" placeholder="ตำแหน่ง" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-blue-600">
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">ภาพถ่ายช่างผู้ขับ</label>
+              <input type="file" id="newOpFileInput" accept="image/*" class="w-full text-xs text-slate-600 border border-slate-300 rounded-xl p-1.5 bg-white">
+            </div>
+
+            <div class="col-span-1 sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-800 mb-1">เลือกเครื่องจักรที่รับผิดชอบ</label>
+              <div id="newOpMachineCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1.5 bg-white text-xs"></div>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-2 pt-2">
+            <button onclick="toggleAddOpForm()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-200 rounded-xl transition">ยกเลิก</button>
+            <button id="btnSaveAddOp" onclick="addMasterOperator()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกช่างผู้ขับ</button>
+          </div>
+        </div>
+
+        <div id="masterOperatorGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- SECTION 3: หมู่บ้าน -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-house-chimney text-emerald-600 text-xl"></i> จัดการหมู่บ้าน (28 หมู่บ้าน)
+          </h3>
+          <button onclick="toggleAddVillageForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> เพิ่มหมู่บ้าน
+          </button>
+        </div>
+
+        <div id="addVillageForm" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+            <input type="text" id="newVillageNo" placeholder="หมู่ที่" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-emerald-600">
+            <input type="text" id="newVillageName" placeholder="ชื่อหมู่บ้าน" class="border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-emerald-600">
+          </div>
+          <div class="flex justify-end space-x-2 pt-2">
+            <button onclick="toggleAddVillageForm()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-200 rounded-xl transition">ยกเลิก</button>
+            <button onclick="addMasterVillage()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกหมู่บ้าน</button>
+          </div>
+        </div>
+
+        <div id="masterVillageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: REQUEST FORM MODAL -->
+  <div id="requestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-emerald-500"></i> ยื่นคำขอขอใช้บริการเครื่องจักรกล
+        </h3>
+        <button onclick="closeRequestModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <form id="requestForm" onsubmit="handleRequestSubmit(event)" class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ชื่อ-นามสกุล ผู้ยื่นคำขอ *</label>
+          <input type="text" id="requesterName" required placeholder="เช่น นายสมชาย ใจดี" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ตำแหน่ง / สถานะ *</label>
+          <input type="text" id="requesterPosition" required placeholder="เช่น ผู้ใหญ่บ้าน / ประชาชน" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">หมู่ที่ *</label>
+            <select id="villageNo" required onchange="autoFillVillageName()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500 font-bold"></select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อหมู่บ้าน *</label>
+            <input type="text" id="villageName" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-slate-700 font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้วันแรก *</label>
+            <input type="date" id="reqStartDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้ถึงวันสุดท้าย *</label>
+            <input type="date" id="reqEndDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ลิงก์แนบเอกสาร / รูปภาพคำขอ (Google Drive URL)</label>
+          <input type="url" id="docLink" placeholder="https://drive.google.com/file/d/..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeRequestModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition">ส่งคำขอรับบริการ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-right-to-bracket text-amber-500"></i> เข้าสู่ระบบเจ้าหน้าที่
+        </h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ประเภทสิทธิ์ผู้ใช้งาน</label>
+          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900" onkeyup="if(event.key==='Enter') performLogin()">
+            <option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
+            <option value="DATA_ENTRY">ผู้บันทึกคำขอและอัปเดต</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">รหัสผ่านยืนยันสิทธิ์</label>
+          <input type="password" id="loginPass" placeholder="กรอกรหัสผ่าน (เริ่มต้น 12345)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-amber-500 font-bold" onkeyup="if(event.key==='Enter') performLogin()">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeLoginModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs">ยกเลิก</button>
+        <button onclick="performLogin()" class="px-5 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-xl shadow-sm transition text-xs">ตกลงเข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: PROJECT DETAILS & PDF EXPORT MODAL -->
+  <div id="detailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-indigo-600"></i> รายละเอียดข้อมูลคำขอ & โครงการ
+        </h3>
+        <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <div id="detailsContent" class="space-y-3"></div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+        <button onclick="exportJobPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-pdf text-base"></i> พิมพ์ใบรายงานผล PDF
+        </button>
+        <button onclick="closeDetailsModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs font-bold">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL -->
+  <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
+      <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน
+        </h3>
+        <button onclick="closePlanModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
+          ✕
         </button>
       </div>
 
-      <div id="reqList" class="space-y-3 pt-1"></div>
-    </div>
-  </main>
+      <div class="p-6 space-y-4 pt-1">
+        <input type="hidden" id="modalRowIndex">
 
-  <!-- MODAL: NEW REQUEST -->
-  <div id="reqModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 border border-slate-200 my-auto space-y-3 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-extrabold text-sm text-slate-900">ยื่นคำขอใช้เครื่องจักรกล</h3>
-        <button onclick="closeReqModal()" class="text-slate-400 text-lg font-black">&times;</button>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 space-y-4 border-r border-slate-100 pr-0 lg:pr-4">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
+              <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
+              
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
+                  <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                    <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
+                    <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
+                  <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
+                  <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
+                  <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
+                  <input type="number" id="modalPlanDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-indigo-600">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันจัดแผน (บาท/ลิตร) *</label>
+                  <input type="number" step="0.01" id="modalPlanOilPrice" oninput="recalculatePerMachineFuel('modal')" value="35.00" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-amber-600">
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+              <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงาน</label>
+              <div id="modalOperatorCheckboxes" class="space-y-1.5 text-xs bg-white p-3 rounded-xl border border-slate-200"></div>
+            </div>
+
+            <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-2">
+              <h4 class="font-extrabold text-emerald-950 text-xs uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-calculator text-emerald-600"></i> สรุปผลรวมประมาณการ</h4>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-600 mb-0.5">ประเมินน้ำมันรวม (ลิตร)</label>
+                  <input type="number" id="modalPlanFuel" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-bold text-amber-600">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-600 mb-0.5">ค่าน้ำมันรวม Easy Pass (บาท)</label>
+                  <input type="number" id="modalPlanFuelAmount" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-black text-emerald-600 text-sm">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-3">
+            <label class="block text-xs font-extrabold text-slate-900 text-sm flex items-center justify-between">
+              <span><i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</span>
+              <span class="text-xs font-normal text-slate-500">* ติ๊กถูกที่ตัวรถเพื่อขยายเงื่อนไขคำนวณ</span>
+            </label>
+            <div id="modalMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+          </div>
+
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+        </div>
       </div>
-      <form onsubmit="handleReqSubmit(event)" class="space-y-2.5">
-        <div class="grid grid-cols-2 gap-2">
+    </div>
+  </div>
+
+  <!-- MODAL 5: ACTUAL PROGRESS UPDATE MODAL -->
+  <div id="actualModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
+      <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง
+        </h3>
+        <button onclick="closeActualModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
+          ✕
+        </button>
+      </div>
+      
+      <div class="p-6 space-y-4 pt-1">
+        <input type="hidden" id="actRowIndex">
+
+        <div class="space-y-3">
           <div>
-            <label class="block font-bold mb-1">หมู่ที่</label>
-            <input type="number" id="mVillageNo" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+            <label class="block font-bold text-slate-700 text-xs sm:text-sm mb-1">สถานะการปฏิบัติงาน *</label>
+            <select id="actJobStatus" onchange="toggleCompletedFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 text-xs sm:text-sm">
+              <option value="กำลังปฏิบัติงาน">กำลังปฏิบัติงาน</option>
+              <option value="ปฏิบัติงานแล้วเสร็จ">ปฏิบัติงานแล้วเสร็จ</option>
+              <option value="มีปัญหา/อุปสรรค">มีปัญหา / อุปสรรค</option>
+            </select>
           </div>
-          <div>
-            <label class="block font-bold mb-1">ชื่อหมู่บ้าน</label>
-            <input type="text" id="mVillageName" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+
+          <div id="issueContainer" class="hidden">
+            <label class="block font-bold text-rose-700 text-xs sm:text-sm mb-1">รายละเอียดปัญหา / อุปสรรค *</label>
+            <textarea id="actIssueDetail" rows="2" placeholder="เช่น เครื่องจักรชำรุดรออะไหล่, สภาพอากาศไม่อำนวย" class="w-full bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-slate-900 outline-none focus:border-rose-500 text-xs sm:text-sm"></textarea>
+          </div>
+
+          <div id="completedFields" class="space-y-4 border-t border-slate-100 pt-3">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div class="lg:col-span-5 space-y-4 border-r border-slate-100 pr-0 lg:pr-4">
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex justify-between items-center">
+                  <div><b>ราคาน้ำมัน ณ วันจัดแผน:</b> <span id="lblJobOilPrice" class="font-bold text-amber-700">35.00</span> บาท/ลิตร</div>
+                  <input type="hidden" id="actJobOilPriceVal" value="35.00">
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
+                  <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-clock text-blue-600"></i> ระยะเวลาปฏิบัติงานจริง</h4>
+                  
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเริ่มทำงานจริง *</label>
+                      <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเสร็จสิ้นงานจริง *</label>
+                      <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
+                    </div>
+                    <div class="col-span-2">
+                      <label class="block font-bold text-slate-700 text-xs mb-1">จำนวนวันปฏิบัติงานจริง</label>
+                      <input type="number" id="actModalDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-blue-700 text-xs">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-user-gear text-blue-600 mr-1"></i> เลือกช่างผู้ปฏิบัติงานจริง</label>
+                  <div id="actOperatorCheckboxes" class="space-y-1.5 text-xs bg-white p-3 rounded-xl border border-slate-200"></div>
+                </div>
+
+                <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-2">
+                  <h4 class="font-extrabold text-emerald-950 text-xs uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-receipt text-emerald-600"></i> สรุปผลยอดตัดเงิน Easy Pass</h4>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label class="block font-bold text-slate-600 mb-0.5">น้ำมันเชื้อเพลิงจริง (ลิตร)</label>
+                      <input type="number" id="actModalFuel" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-bold text-amber-600">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-600 mb-0.5">ยอดตัดงบสุดท้าย (บาท)</label>
+                      <input type="number" id="actModalAmount" readonly class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-black text-emerald-600 text-sm">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-7 space-y-3">
+                <label class="block text-xs font-extrabold text-slate-900 text-sm flex items-center justify-between">
+                  <span><i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันใช้จริงประจำรถ</span>
+                  <span class="text-xs font-normal text-slate-500">* ปรับแก้ไขชั่วโมง/กิโลเมตรที่ใช้จริงได้ทันที</span>
+                </label>
+                <div id="actMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+              </div>
+
+            </div>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">ชื่อผู้ยื่นคำขอ</label>
-            <input type="text" id="mRequesterName" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">ตำแหน่ง</label>
-            <input type="text" id="mRequesterPosition" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
+
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button onclick="closeActualModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveActualProgressFromModal()" class="px-6 py-2.5 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกผลการปฏิบัติงาน</button>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">วันที่ขอใช้เริ่ม</label>
-            <input type="date" id="mReqStartDate" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">ถึงวันที่</label>
-            <input type="date" id="mReqEndDate" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: EDIT MASTER MACHINE -->
+  <div id="editMachineModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100 relative">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-500"></i> แก้ไขข้อมูลเครื่องจักรกล & อุปกรณ์
+        </h3>
+        <button onclick="closeEditMachineModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <input type="hidden" id="editMachineRowIndex">
+      <input type="hidden" id="editMachineImgOld">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm">
+        <div class="col-span-2">
+          <label class="block font-bold text-slate-700 mb-1">ชื่อเครื่องจักร / ชนิดรถ *</label>
+          <input type="text" id="editMachineName" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
         </div>
         <div>
-          <label class="block font-bold mb-1">ลิงก์เอกสารแนบ (ถ้ามี)</label>
-          <input type="url" id="mDocLink" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeReqModal()" class="px-3 py-1.5 bg-slate-100 rounded-xl font-bold">ยกเลิก</button>
-          <button type="submit" class="px-4 py-1.5 bg-amber-500 text-slate-950 rounded-xl font-black">ส่งคำขอ</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: APPROVE -->
-  <div id="approveModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 border border-slate-200 my-auto space-y-3 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-extrabold text-sm text-slate-900">จัดสรรแผนงานและอนุมัติ</h3>
-        <button onclick="closeApproveModal()" class="text-slate-400 text-lg font-black">&times;</button>
-      </div>
-      <form onsubmit="handleApproveSubmit(event)" class="space-y-2.5">
-        <input type="hidden" id="appReqId">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">เริ่มตามแผน</label>
-            <input type="date" id="appPlanStart" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">สิ้นสุดตามแผน</label>
-            <input type="date" id="appPlanEnd" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">จำนวนวัน</label>
-            <input type="number" id="appPlanDays" required min="1" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">ประมาณการน้ำมัน (ลิตร)</label>
-            <input type="number" id="appPlanFuel" required min="0" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
+          <label class="block font-bold text-slate-700 mb-1">ยี่ห้อ</label>
+          <input type="text" id="editMachineBrand" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
         </div>
         <div>
-          <label class="block font-bold mb-1">เครื่องจักรกลที่จัดสรร</label>
-          <input type="text" id="appMachine" required placeholder="เช่น รถขุดตีนตะขาบ" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+          <label class="block font-bold text-slate-700 mb-1">ทะเบียน</label>
+          <input type="text" id="editMachinePlate" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+        </div>
+        <div class="col-span-2">
+          <label class="block font-bold text-slate-700 mb-1">เลขครุภัณฑ์</label>
+          <input type="text" id="editMachineAssetNo" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+        </div>
+        <div class="col-span-2">
+          <label class="block font-bold text-slate-700 mb-1">อุปกรณ์เสริมประจำรถ</label>
+          <input type="text" id="editMachineEq" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-amber-500">
+        </div>
+
+        <div class="col-span-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-2">
+          <label class="block text-xs font-black text-amber-950"><i class="fa-solid fa-gas-pump mr-1 text-amber-600"></i> เกณฑ์การใช้น้ำมัน</label>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อกิโล</label>
+              <input type="number" step="0.1" id="editMachineRateKm" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อชั่วโมง</label>
+              <input type="number" step="0.1" id="editMachineRateHr" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-amber-900 mb-1">ลิตรต่อวัน</label>
+              <input type="number" step="0.1" id="editMachineRateDay" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-amber-900 mb-1">ชั่วโมงมาตรฐานต่อวัน</label>
+              <input type="number" id="editMachineStdHr" class="w-full border border-amber-300 rounded-xl p-2 bg-white text-amber-950 font-bold outline-none">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">เปลี่ยนภาพถ่ายเครื่องจักร (ปล่อยว่างถ้าไม่เปลี่ยน)</label>
+          <input type="file" id="editMachineFileInput" accept="image/*" class="w-full text-xs text-slate-600 border border-slate-300 rounded-xl p-1.5 bg-white">
+        </div>
+
+        <div class="col-span-4">
+          <label class="block text-xs font-bold text-slate-800 mb-1">เลือกผู้ดูแล / ช่างผู้ขับประจำรถ (เลือกได้หลายคน)</label>
+          <div id="editMachineOperatorCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1.5 bg-slate-50 text-xs"></div>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeEditMachineModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+        <button id="btnSaveEditMachine" onclick="saveEditMachine()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกการแก้ไข</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 7: EDIT MASTER OPERATOR -->
+  <div id="editOpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-slate-100 relative">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-user-pen text-blue-600"></i> แก้ไขข้อมูลช่างผู้ขับ / ผู้รับผิดชอบ
+        </h3>
+        <button onclick="closeEditOpModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <input type="hidden" id="editOpRowIndex">
+      <input type="hidden" id="editOpImgOld">
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ชื่อ-นามสกุล ช่าง *</label>
+          <input type="text" id="editOpName" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-blue-600">
         </div>
         <div>
-          <label class="block font-bold mb-1">ช่างผู้ปฏิบัติงาน</label>
-          <input type="text" id="appOperator" required placeholder="ระบุชื่อช่าง" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+          <label class="block font-bold text-slate-700 mb-1">ตำแหน่ง</label>
+          <input type="text" id="editOpPosition" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-blue-600">
         </div>
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeApproveModal()" class="px-3 py-1.5 bg-slate-100 rounded-xl font-bold">ยกเลิก</button>
-          <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl font-black">อนุมัติแผนงาน</button>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">เปลี่ยนภาพถ่ายช่างผู้ขับ (ปล่อยว่างถ้าไม่เปลี่ยน)</label>
+          <input type="file" id="editOpFileInput" accept="image/*" class="w-full text-xs text-slate-600 border border-slate-300 rounded-xl p-1.5 bg-white">
         </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: FINALIZE EASY PASS -->
-  <div id="finalizeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 border border-slate-200 my-auto space-y-3 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-extrabold text-sm text-slate-900">สรุปผลปฏิบัติงาน & ส่ง Easy Pass</h3>
-        <button onclick="closeFinalizeModal()" class="text-slate-400 text-lg font-black">&times;</button>
+        <div>
+          <label class="block text-xs font-bold text-slate-800 mb-1">เลือกเครื่องจักรที่รับผิดชอบ</label>
+          <div id="editOpMachineCheckboxes" class="border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1.5 bg-slate-50 text-xs"></div>
+        </div>
       </div>
-      <form onsubmit="handleFinalizeSubmit(event)" class="space-y-2.5">
-        <input type="hidden" id="finReqId">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">วันเริ่มงานจริง</label>
-            <input type="date" id="finStart" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">วันเสร็จจริง</label>
-            <input type="date" id="finEnd" required class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">จำนวนวันจริง</label>
-            <input type="number" id="finDays" required min="1" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-          <div>
-            <label class="block font-bold mb-1">น้ำมันใช้จริง (ลิตร)</label>
-            <input type="number" id="finFuel" required min="0" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeFinalizeModal()" class="px-3 py-1.5 bg-slate-100 rounded-xl font-bold">ยกเลิก</button>
-          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-black">ส่ง Easy Pass สรุปรายจ่าย</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- MODAL: LOGIN -->
-  <div id="loginModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-xs w-full p-5 text-center border border-slate-200 space-y-3">
-      <h3 class="font-extrabold text-slate-900 text-sm">เข้าสู่ระบบ Admin</h3>
-      <input type="password" id="adminPin" placeholder="••••••" maxlength="10" class="w-full border p-2 rounded-xl text-center text-lg font-mono font-bold">
-      <div class="flex gap-2 text-xs font-bold">
-        <button onclick="closeLoginModal()" class="w-1/2 py-2 bg-slate-100 rounded-xl">ยกเลิก</button>
-        <button onclick="submitLogin()" class="w-1/2 py-2 bg-amber-500 text-slate-950 rounded-xl">ยืนยัน</button>
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeEditOpModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+        <button id="btnSaveEditOp" onclick="saveEditOperator()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกการแก้ไข</button>
       </div>
     </div>
   </div>
 
+  <!-- MODAL 8: EDIT MASTER VILLAGE -->
+  <div id="editVillageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100 relative">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-house-chimney-window text-emerald-600"></i> แก้ไขข้อมูลหมู่บ้าน
+        </h3>
+        <button onclick="closeEditVillageModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <input type="hidden" id="editVillageRowIndex">
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">หมู่ที่ *</label>
+          <input type="text" id="editVillageNo" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-emerald-600">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ชื่อหมู่บ้าน *</label>
+          <input type="text" id="editVillageName" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-900 outline-none focus:border-emerald-600">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeEditVillageModal()" class="px-4 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+        <button onclick="saveEditVillage()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm">บันทึกการแก้ไข</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT SCRIPT -->
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
-    const BUDGET_URL = 'https://script.google.com/macros/s/AKfycbx5j7tZvVEWVaQ3cT9iiPsuy-v-CMiCJcacCbMDH7gpbq-WxqM2uPrDCH1oWSbPuSjN/exec';
+    // URL ของ API แอปพลิเคชันเครื่องจักรกล
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
-    let currentPin = sessionStorage.getItem('mac_pin') || null;
-    let reqData = [];
+    let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
+    let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
+    let CURRENT_SELECTED_REQUEST_ID = '';
+    let fuelChartInstance = null;
+    let villageChartInstance = null;
 
-    async function callAPI(action, payload = {}) {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: action, pin: currentPin, payload: payload })
-      });
-      return await res.json();
+    async function callGAS(action, payload = {}) {
+      try {
+        if (!GAS_API_URL || GAS_API_URL.trim() === '') {
+          showToast('กรุณาระบุ GAS_API_URL ในไฟล์ index.html ให้ถูกต้อง', 'error');
+          return;
+        }
+
+        const response = await fetch(GAS_API_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, payload: payload })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('GAS API Error:', error);
+        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบเซิร์ฟเวอร์', 'error');
+        throw error;
+      }
     }
 
-    function showToast(msg, isError = false) {
-      const c = document.getElementById('toastContainer');
-      const t = document.createElement('div');
-      t.className = `p-3 rounded-xl text-xs font-bold shadow-lg ${isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`;
-      t.innerText = msg;
-      c.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+    function calculateDaysBetween(startDateStr, endDateStr) {
+      if (!startDateStr || !endDateStr) return 0;
+      const d1 = new Date(startDateStr + 'T00:00:00');
+      const d2 = new Date(endDateStr + 'T00:00:00');
+      if (isNaN(d1) || isNaN(d2) || d2 < d1) return 0;
+      const diffTime = Math.abs(d2 - d1);
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    function formatThaiDate(dateStr) {
+      if (!dateStr) return '-';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+
+      const year = parseInt(parts[0], 10) + 543;
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+
+      const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+
+      if (monthIndex < 0 || monthIndex > 11) return dateStr;
+      return `${day} ${thaiMonths[monthIndex]} ${year}`;
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let bg = 'bg-slate-900 border border-slate-800 text-white';
+      let icon = 'fa-circle-check text-emerald-400';
+
+      if (type === 'error') {
+        bg = 'bg-rose-600 border border-rose-700 text-white';
+        icon = 'fa-circle-exclamation text-white';
+      } else if (type === 'info') {
+        bg = 'bg-indigo-600 border border-indigo-700 text-white';
+        icon = 'fa-spinner fa-spin text-white';
+      }
+
+      toast.className = `${bg} text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 transition transform translate-y-2 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span>${message}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
     }
 
     window.onload = function() {
-      checkAdmin();
-      fetchData();
+      loadData();
     };
 
-    function checkAdmin() {
-      const isAuth = !!currentPin;
-      document.getElementById('btnLogin').classList.toggle('hidden', isAuth);
-      document.getElementById('adminBadge').classList.toggle('hidden', !isAuth);
-      renderUI();
-    }
-
-    async function fetchData() {
+    async function loadData() {
       try {
-        const res = await callAPI('getInitialData');
-        reqData = res.requests || [];
-        renderUI();
-      } catch (e) {
-        showToast('โหลดข้อมูลล้มเหลว', true);
+        const data = await callGAS('getInitialData');
+        if (!data) return;
+        GLOBAL_DATA = data;
+        renderVillagesDropdown();
+        renderPendingTable();
+        renderJobsTable();
+        renderSummaryJobs();
+        renderMasterLists();
+        renderAnalyticsDashboard();
+        updateRoleUI();
+      } catch (err) {
+        console.error('Error loading data:', err);
       }
     }
 
-    function renderUI() {
-      const c = document.getElementById('reqList');
-      c.innerHTML = '';
-      if (reqData.length === 0) {
-        c.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold text-xs">ไม่พบรายการคำขอ</div>`;
-        return;
+    function getJobDataByRowIndex(rowIndex) {
+      return GLOBAL_DATA.finishedEasyPassJobs.find(j => j.rowIndex === rowIndex) || 
+             GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex) || {};
+    }
+
+    function updateRoleUI() {
+      const btnReq = document.getElementById('btnCreateRequest');
+      const btnSum = document.getElementById('btn-summaryTab');
+      const btnAna = document.getElementById('btn-analyticsTab');
+      const btnMas = document.getElementById('btn-masterTab');
+
+      if (CURRENT_USER.role === 'GUEST') {
+        btnReq.classList.add('hidden');
+        btnSum.classList.add('hidden');
+        btnAna.classList.add('hidden');
+        btnMas.classList.add('hidden');
+      } else if (CURRENT_USER.role === 'DATA_ENTRY') {
+        btnReq.classList.remove('hidden');
+        btnSum.classList.add('hidden');
+        btnAna.classList.add('hidden');
+        btnMas.classList.add('hidden');
+      } else if (CURRENT_USER.role === 'SUPER_ADMIN') {
+        btnReq.classList.remove('hidden');
+        btnSum.classList.remove('hidden');
+        btnAna.classList.remove('hidden');
+        btnMas.classList.remove('hidden');
       }
 
-      reqData.forEach(item => {
-        const div = document.createElement('div');
-        div.className = "bg-slate-50 border p-3.5 rounded-2xl space-y-1.5 text-xs";
-        div.innerHTML = `
-          <div class="flex justify-between items-center">
-            <span class="font-black text-slate-900 text-sm">${item.requestId} - หมู่ ${item.villageNo} ${item.villageName}</span>
-            <span class="px-2 py-0.5 rounded-full font-bold text-[10px] ${item.jobProgressStatus === 'ปฏิบัติงานแล้วเสร็จ' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.jobProgressStatus}</span>
-          </div>
-          <div class="text-slate-600 font-semibold"><b>ผู้ยื่น:</b> ${item.requesterName} (${item.requesterPosition}) | <b>ขอใช้:</b> ${item.reqStartDate} ถึง ${item.reqEndDate}</div>
-          ${item.assignedMachine ? `<div class="bg-white p-2 rounded-xl border text-slate-800 font-bold"><b>เครื่องจักร:</b> ${item.assignedMachine} \vert{} <b>ช่าง:</b> ${item.assignedOperator}</div>` : ''}
-          ${currentPin ? `
-            <div class="flex justify-end gap-2 pt-1 border-t">
-              ${item.approvalStatus === 'PENDING' ? `<button onclick="openApprove('${item.requestId}', '${item.reqStartDate}', '${item.reqEndDate}')" class="bg-indigo-600 text-white px-3 py-1 rounded-xl font-bold">จัดสรรแผน</button>` : ''}
-              ${item.approvalStatus === 'Accepted' && item.jobProgressStatus !== 'ปฏิบัติงานแล้วเสร็จ' ? `<button onclick="openFinalize('${item.requestId}', '${item.planStartDate}', '${item.planEndDate}', ${item.planDays}, ${item.planFuelLiters})" class="bg-emerald-600 text-white px-3 py-1 rounded-xl font-bold">สรุปผล & ส่ง Easy Pass</button>` : ''}
-            </div>
-          ` : ''}
-        `;
-        c.appendChild(div);
+      updateNotificationWidget();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-slate-900', 'text-white', 'font-extrabold');
+        el.classList.add('text-slate-600', 'font-bold');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId).classList.remove('text-slate-600', 'font-bold');
+      document.getElementById('btn-' + tabId).classList.add('bg-slate-900', 'text-white', 'font-extrabold');
+
+      if (tabId === 'analyticsTab') {
+        renderAnalyticsDashboard();
+      }
+    }
+
+    function openRequestModal() { document.getElementById('requestModal').classList.remove('hidden'); }
+    function closeRequestModal() { document.getElementById('requestModal').classList.add('hidden'); }
+
+    function openLoginModal() { 
+      document.getElementById('loginModal').classList.remove('hidden'); 
+      setTimeout(() => document.getElementById('loginPass').focus(), 100);
+    }
+    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+    async function performLogin() {
+      const role = document.getElementById('loginRole').value;
+      const pass = document.getElementById('loginPass').value;
+
+      const res = await callGAS('checkLogin', { role: role, password: pass });
+      if (res && res.success) {
+        CURRENT_USER = res;
+        if (role === 'DATA_ENTRY') CURRENT_USER.name = 'ผู้บันทึกคำขอและอัปเดต';
+        
+        document.getElementById('userBadge').innerText = `${CURRENT_USER.name}`;
+        document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
+        document.getElementById('authBtn').onclick = logout;
+        
+        closeLoginModal();
+        updateRoleUI();
+        renderPendingTable();
+        renderJobsTable();
+        renderSummaryJobs();
+        showToast('เข้าสู่ระบบสำเร็จ');
+      } else {
+        showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
+      }
+    }
+
+    function logout() {
+      CURRENT_USER = { role: 'GUEST', name: 'Guest' };
+      document.getElementById('userBadge').innerText = 'Guest';
+      document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ`;
+      document.getElementById('authBtn').onclick = openLoginModal;
+      
+      switchTab('trackingTab');
+      updateRoleUI();
+      renderPendingTable();
+      renderJobsTable();
+      showToast('ออกจากระบบเรียบร้อยแล้ว');
+    }
+
+    function renderVillagesDropdown() {
+      const sel = document.getElementById('villageNo');
+      sel.innerHTML = '<option value="">-- เลือกหมู่ที่ --</option>';
+      GLOBAL_DATA.villages.forEach(v => {
+        sel.innerHTML += `<option value="${v.no}">${v.display}</option>`;
       });
     }
 
-    function openReqModal() { document.getElementById('reqModal').classList.remove('hidden'); document.getElementById('reqModal').classList.add('flex'); }
-    function closeReqModal() { document.getElementById('reqModal').classList.add('hidden'); document.getElementById('reqModal').classList.remove('flex'); }
+    function autoFillVillageName() {
+      const vNo = document.getElementById('villageNo').value;
+      const found = GLOBAL_DATA.villages.find(v => String(v.no) === String(vNo));
+      document.getElementById('villageName').value = found ? found.name : '';
+    }
 
-    async function handleReqSubmit(e) {
+    async function handleRequestSubmit(e) {
       e.preventDefault();
       const payload = {
-        villageNo: Number(document.getElementById('mVillageNo').value),
-        villageName: document.getElementById('mVillageName').value,
-        requesterName: document.getElementById('mRequesterName').value,
-        requesterPosition: document.getElementById('mRequesterPosition').value,
-        reqStartDate: document.getElementById('mReqStartDate').value,
-        reqEndDate: document.getElementById('mReqEndDate').value,
-        docLink: document.getElementById('mDocLink').value
+        requesterName: document.getElementById('requesterName').value,
+        requesterPosition: document.getElementById('requesterPosition').value,
+        villageNo: document.getElementById('villageNo').value,
+        villageName: document.getElementById('villageName').value,
+        reqStartDate: document.getElementById('reqStartDate').value,
+        reqEndDate: document.getElementById('reqEndDate').value,
+        docLink: document.getElementById('docLink').value
       };
-      const res = await callAPI('submitRequest', payload);
-      closeReqModal();
-      showToast(res.message);
-      fetchData();
-    }
-
-    function openApprove(id, start, end) {
-      document.getElementById('appReqId').value = id;
-      document.getElementById('appPlanStart').value = start;
-      document.getElementById('appPlanEnd').value = end;
-      document.getElementById('approveModal').classList.remove('hidden');
-      document.getElementById('approveModal').classList.add('flex');
-    }
-    function closeApproveModal() { document.getElementById('approveModal').classList.add('hidden'); document.getElementById('approveModal').classList.remove('flex'); }
-
-    async function handleApproveSubmit(e) {
-      e.preventDefault();
-      const payload = {
-        requestId: document.getElementById('appReqId').value,
-        planStartDate: document.getElementById('appPlanStart').value,
-        planEndDate: document.getElementById('appPlanEnd').value,
-        planDays: Number(document.getElementById('appPlanDays').value),
-        planFuelLiters: Number(document.getElementById('appPlanFuel').value),
-        assignedMachine: document.getElementById('appMachine').value,
-        assignedOperator: document.getElementById('appOperator').value
-      };
-      const res = await callAPI('approveRequest', payload);
-      closeApproveModal();
-      showToast(res.message);
-      fetchData();
-    }
-
-    function openFinalize(id, start, end, days, fuel) {
-      document.getElementById('finReqId').value = id;
-      document.getElementById('finStart').value = start;
-      document.getElementById('finEnd').value = end;
-      document.getElementById('finDays').value = days;
-      document.getElementById('finFuel').value = fuel;
-      document.getElementById('finalizeModal').classList.remove('hidden');
-      document.getElementById('finalizeModal').classList.add('flex');
-    }
-    function closeFinalizeModal() { document.getElementById('finalizeModal').classList.add('hidden'); document.getElementById('finalizeModal').classList.remove('flex'); }
-
-    async function handleFinalizeSubmit(e) {
-      e.preventDefault();
-      const payload = {
-        requestId: document.getElementById('finReqId').value,
-        actualStartDate: document.getElementById('finStart').value,
-        actualEndDate: document.getElementById('finEnd').value,
-        actualDays: Number(document.getElementById('finDays').value),
-        actualFuelLiters: Number(document.getElementById('finFuel').value)
-      };
-      const res = await callAPI('finalizeJobEasyPass', payload);
-      closeFinalizeModal();
-      showToast(res.message);
-      fetchData();
-    }
-
-    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); document.getElementById('loginModal').classList.add('flex'); }
-    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); document.getElementById('loginModal').classList.remove('flex'); }
-
-    async function submitLogin() {
-      const pin = document.getElementById('adminPin').value;
-      const res = await callAPI('verifyAdminPin', {}, pin);
+      
+      const res = await callGAS('submitNewRequest', payload);
       if (res && res.success) {
-        currentPin = pin;
-        sessionStorage.setItem('mac_pin', pin);
-        checkAdmin();
-        closeLoginModal();
-        showToast('เข้าสู่ระบบสำเร็จ');
-      } else {
-        showToast('PIN ไม่ถูกต้อง', true);
+        showToast('บันทึกคำขอรับบริการสำเร็จ! รหัส: ' + res.requestId);
+        document.getElementById('requestForm').reset();
+        closeRequestModal();
+        loadData();
       }
     }
 
-    function logoutAdmin() {
-      sessionStorage.removeItem('mac_pin');
-      currentPin = null;
-      checkAdmin();
-      showToast('ออกจากระบบแล้ว');
+    function updateNotificationWidget() {
+      const pCount = GLOBAL_DATA.pendingRequests.length;
+      document.getElementById('widgetCount').innerText = pCount;
+      document.getElementById('pendingBadgeTab').innerText = pCount;
+
+      const unsentEasyPass = GLOBAL_DATA.finishedEasyPassJobs.filter(j => !j.isEasyPassSent).length;
+      const epBadge = document.getElementById('easyPassBadgeTab');
+      epBadge.innerText = unsentEasyPass;
+      if (unsentEasyPass > 0) epBadge.classList.remove('hidden'); else epBadge.classList.add('hidden');
+
+      if (pCount > 0) {
+        document.getElementById('pendingBadgeTab').classList.remove('hidden');
+        if (CURRENT_USER.role === 'SUPER_ADMIN') {
+          document.getElementById('notificationWidget').classList.remove('hidden');
+        } else {
+          document.getElementById('notificationWidget').classList.add('hidden');
+        }
+      } else {
+        document.getElementById('pendingBadgeTab').classList.add('hidden');
+        document.getElementById('notificationWidget').classList.add('hidden');
+      }
+    }
+
+    function openProjectDetails(requestId) {
+      CURRENT_SELECTED_REQUEST_ID = requestId;
+      let job = GLOBAL_DATA.approvedJobs.find(j => j.requestId === requestId);
+      if (!job) job = GLOBAL_DATA.pendingRequests.find(j => j.requestId === requestId);
+      if (!job) return;
+
+      const container = document.getElementById('detailsContent');
+      container.innerHTML = `
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs sm:text-sm">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-slate-900 text-base">${job.requestId}</span>
+            <span class="bg-indigo-100 text-indigo-800 font-extrabold px-3 py-1 rounded-full text-xs">${job.approvalStatus}</span>
+          </div>
+          <div><b class="text-slate-500">สถานที่ปฏิบัติงาน:</b> <span class="font-bold text-slate-900">หมู่ที่ ${job.villageNo} ${job.villageName}</span></div>
+          <div><b class="text-slate-500">ผู้ยื่นคำขอ:</b> <span class="font-bold text-slate-900">${job.requesterName} (${job.requesterPosition})</span></div>
+          <div><b class="text-slate-500">วันที่ยื่นระบบ:</b> ${formatThaiDate(job.requestDate)}</div>
+          <div><b class="text-slate-500">วันที่ขอใช้ตั้งต้น:</b> ${formatThaiDate(job.reqStartDate)} ถึง ${formatThaiDate(job.reqEndDate)}</div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs sm:text-sm">
+          <div class="font-extrabold text-slate-900 border-b border-slate-200 pb-2 text-sm">รายละเอียดแผนงานและการอนุมัติ</div>
+          <div><b class="text-slate-500">ผู้อนุมัติ:</b> ${job.approvedBy || '-'}</div>
+          <div><b class="text-slate-500">ช่วงวันตามแผนงาน:</b> ${formatThaiDate(job.planStartDate)} ถึง ${formatThaiDate(job.planEndDate)} (${job.planDays || 0} วัน)</div>
+          <div><b class="text-slate-500">เครื่องจักรกลที่จัดสรร:</b> ${job.assignedMachine || '-'}</div>
+          <div><b class="text-slate-500">ช่างผู้ปฏิบัติงาน:</b> ${job.assignedOperator || '-'}</div>
+          <div><b class="text-slate-500">น้ำมันประเมิน:</b> ${job.planFuelLiters || 0} ลิตร (ราคาน้ำมัน ณ วันจัดแผน: ${job.planOilPrice || '-'} บาท/ลิตร)</div>
+        </div>
+
+        ${job.actualStartDate || job.jobProgressStatus ? `
+          <div class="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 space-y-2 text-xs sm:text-sm">
+            <div class="font-extrabold text-emerald-950 border-b border-emerald-200 pb-2 text-sm">สถานะการปฏิบัติงานจริง</div>
+            <div><b class="text-slate-500">สถานะปัจจุบัน:</b> <span class="font-extrabold text-indigo-700">${job.jobProgressStatus}</span></div>
+            ${job.issueDetail ? `<div class="text-rose-600 font-bold"><b>หมายเหตุปัญหา:</b> ${job.issueDetail}</div>` : ''}
+            <div><b class="text-slate-500">ช่วงวันปฏิบัติงานจริง:</b> ${formatThaiDate(job.actualStartDate)} ถึง ${formatThaiDate(job.actualEndDate) || 'กำลังดำเนินงาน'} (${job.actualDays || 0} วัน)</div>
+            <div><b class="text-slate-500">น้ำมันใช้จริง:</b> ${job.actualFuelLiters || 0} ลิตร</div>
+            <div><b class="text-slate-500">ยอดเงินตัดงบ Easy Pass:</b> <span class="text-emerald-700 font-black text-base">${(job.totalAmount || 0).toLocaleString()} บาท</span></div>
+          </div>
+        ` : ''}
+
+        ${job.docLink ? `
+          <div class="pt-1">
+            <a href="${job.docLink}" target="_blank" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition shadow-sm text-xs sm:text-sm">
+              <i class="fa-solid fa-file-pdf mr-1.5"></i> คลิกเพื่อเปิดดูเอกสาร / รูปภาพแนบ
+            </a>
+          </div>
+        ` : '<div class="text-slate-400 italic text-xs text-center">* ไม่มีลิงก์เอกสารแนบ</div>'}
+      `;
+
+      document.getElementById('detailsModal').classList.remove('hidden');
+    }
+
+    function closeDetailsModal() { document.getElementById('detailsModal').classList.add('hidden'); }
+
+    async function exportJobPDF() {
+      if (!CURRENT_SELECTED_REQUEST_ID) return;
+      showToast('กำลังเจนเนอเรตเอกสาร PDF...', 'info');
+
+      try {
+        const res = await callGAS('generateOfficialPDF', { requestId: CURRENT_SELECTED_REQUEST_ID });
+        if (res && res.pdfDataUrl) {
+          const downloadLink = document.createElement("a");
+          downloadLink.href = res.pdfDataUrl;
+          downloadLink.download = `Report-${CURRENT_SELECTED_REQUEST_ID}.pdf`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          showToast('ดาวน์โหลดเอกสาร PDF เรียบร้อยแล้ว');
+        }
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาดในการสร้าง PDF', 'error');
+      }
+    }
+
+    function renderPendingTable() {
+      const container = document.getElementById('pendingRequestsContainer');
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.pendingRequests.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 font-semibold border border-slate-200/80 text-sm"><i class="fa-solid fa-circle-check text-emerald-500 text-3xl mb-2 block"></i> ไม่มีคำขอค้างรอการอนุมัติในขณะนี้</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.pendingRequests.forEach(req => {
+        const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
+
+        container.innerHTML += `
+          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
+                <i class="fa-solid fa-circle-info text-amber-500 mr-2"></i> ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
+              </span>
+              <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">รออนุมัติ</span>
+            </div>
+            <div class="text-xs sm:text-sm text-slate-700 flex justify-between flex-wrap gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
+              <span><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
+            </div>
+            ${isSuperAdmin ? `
+              <div class="pt-1 text-right flex justify-end space-x-2" onclick="event.stopPropagation()">
+                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition">
+                  <i class="fa-solid fa-xmark mr-1"></i> ปฏิเสธ
+                </button>
+                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded-xl font-bold shadow-sm transition">
+                  <i class="fa-solid fa-check mr-1"></i> อนุมัติ & จัดแผน
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+    }
+
+    function renderJobsTable() {
+      const container = document.getElementById('jobsTableContainer');
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.approvedJobs.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 font-semibold border border-slate-200/80 text-sm">ยังไม่มีแผนงานที่ได้รับการอนุมัติ</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.approvedJobs.forEach(job => {
+        let statusBadge = '';
+
+        if (job.isEasyPassSent) {
+          statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold px-3 py-1 rounded-full flex items-center whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>ตัดเงินสำเร็จ</span>`;
+        } else if (job.jobProgressStatus === 'ปฏิบัติงานแล้วเสร็จ') {
+          statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold px-3 py-1 rounded-full flex items-center whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>ปฏิบัติงานแล้วเสร็จ</span>`;
+        } else if (job.jobProgressStatus === 'มีปัญหา/อุปสรรค') {
+          statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 text-xs font-extrabold px-3 py-1 rounded-full flex items-center whitespace-nowrap animate-pulse"><span class="w-2 h-2 rounded-full bg-rose-600 mr-1.5"></span>มีปัญหา/อุปสรรค</span>`;
+        } else {
+          statusBadge = `<span class="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-extrabold px-3 py-1 rounded-full flex items-center whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5"></span>กำลังปฏิบัติงาน</span>`;
+        }
+
+        const canUpdate = CURRENT_USER.role === 'SUPER_ADMIN' || CURRENT_USER.role === 'DATA_ENTRY';
+        const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
+
+        container.innerHTML += `
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect job-card-row bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm transition cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.assignedOperator} ${job.assignedMachine}">
+            <div class="flex items-center space-x-3.5 flex-grow w-full md:w-auto overflow-hidden">
+              <div class="flex-shrink-0">${statusBadge}</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm flex-grow items-center border-l border-slate-100 pl-4">
+                <div class="truncate">
+                  <span class="font-extrabold text-slate-900 hover:text-indigo-600 transition text-sm sm:text-base block truncate">
+                    <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i>${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
+                  </span>
+                  <div class="text-xs text-slate-500 truncate"><span class="font-semibold text-slate-400">ผู้ยื่น:</span> ${job.requesterName}</div>
+                </div>
+                <div class="truncate">
+                  <span class="text-[11px] text-slate-400 block font-semibold leading-none mb-1">ช่วงแผนงาน</span>
+                  <span class="font-extrabold text-slate-800 text-xs sm:text-sm">${formatThaiDate(job.planStartDate)} ถึง ${formatThaiDate(job.planEndDate)}</span>
+                </div>
+                <div class="truncate">
+                  <span class="text-[11px] text-slate-400 block font-semibold leading-none mb-1">เครื่องจักร/รถ</span>
+                  <span class="font-extrabold text-amber-700 text-xs sm:text-sm truncate block">${job.assignedMachine || '-'}</span>
+                </div>
+                <div class="truncate">
+                  <span class="text-[11px] text-slate-400 block font-semibold leading-none mb-1">ช่างผู้ปฏิบัติงาน</span>
+                  <span class="font-extrabold text-blue-700 text-xs sm:text-sm truncate block">${job.assignedOperator || '-'}</span>
+                </div>
+              </div>
+            </div>
+            ${canUpdate ? `
+              <div class="flex items-center space-x-2 flex-shrink-0 border-t md:border-t-0 border-slate-100 pt-3 md:pt-0 w-full md:w-auto justify-end" onclick="event.stopPropagation()">
+                <button onclick="openActualModal(${job.rowIndex})" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5 h-full">
+                  <i class="fa-solid fa-list-check"></i> อัปเดตงาน
+                </button>
+                ${isSuperAdmin ? `
+                  <div class="flex flex-col space-y-1">
+                    <button onclick="openPlanModal(${job.rowIndex})" class="bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs px-2.5 py-1 rounded-lg font-bold transition flex items-center justify-center gap-1">
+                      <i class="fa-solid fa-pen-to-square text-slate-300"></i> แก้ไข
+                    </button>
+                    <button onclick="deleteJob(${job.rowIndex})" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs px-2.5 py-1 rounded-lg font-bold transition flex items-center justify-center gap-1">
+                      <i class="fa-solid fa-trash"></i> ลบ
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+    }
+
+    function filterTrackingTable() {
+      const q = document.getElementById('searchTracking').value.toLowerCase();
+      document.querySelectorAll('#jobsTableContainer .job-card-row').forEach(row => {
+        const text = row.getAttribute('data-search').toLowerCase();
+        if (text.includes(q)) row.classList.remove('hidden'); else row.classList.add('hidden');
+      });
+    }
+
+    function openPlanModal(rowIndex) {
+      let job = GLOBAL_DATA.pendingRequests.find(j => j.rowIndex === rowIndex);
+      if (!job) job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
+      if (!job) return;
+
+      document.getElementById('modalRowIndex').value = rowIndex;
+      document.getElementById('modalApprovalStatus').value = 'Accepted';
+      document.getElementById('modalApprovalRemark').value = job.approvalRemark || '';
+      document.getElementById('modalPlanStartDate').value = job.planStartDate || job.reqStartDate || '';
+      document.getElementById('modalPlanEndDate').value = job.planEndDate || job.reqEndDate || '';
+      document.getElementById('modalPlanOilPrice').value = job.planOilPrice || 35.00;
+
+      renderPerMachineCheckboxes('modalMachineCheckboxes', 'modal', job.assignedMachine);
+      renderOperatorCheckboxes('modalOperatorCheckboxes', 'modal', job.assignedOperator);
+
+      recalculatePerMachineFuel('modal');
+      document.getElementById('planModal').classList.remove('hidden');
+    }
+
+    function renderPerMachineCheckboxes(containerId, prefix, selectedStr) {
+      const mContainer = document.getElementById(containerId);
+      mContainer.innerHTML = '';
+      const selectedMachines = selectedStr ? selectedStr.split(', ') : [];
+      
+      GLOBAL_DATA.machines.forEach((m) => {
+        const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
+        const mKey = `${prefix}_pm_${m.rowIndex}`;
+        const defaultMode = (m.ratePerKm > 0) ? 'PER_KM' : 'PER_DAY';
+
+        mContainer.innerHTML += `
+          <div id="${mKey}_card" class="p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${isChecked ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-400' : 'bg-slate-50 border-slate-200/90'}">
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}', '${prefix}')" class="rounded text-amber-600 w-4 h-4">
+              <span class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">${m.name}</span>
+            </label>
+
+            <div id="${mKey}_panel" class="${isChecked ? '' : 'hidden'} bg-white p-3 rounded-xl border border-amber-200 space-y-2">
+              <div class="flex items-center justify-between flex-wrap gap-1 text-xs">
+                <span class="font-bold text-amber-950">เงื่อนไขคิดน้ำมัน:</span>
+                <select id="${mKey}_calcMode" onchange="recalculatePerMachineFuel('${prefix}')" class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 outline-none text-xs">
+                  <option value="PER_DAY" ${defaultMode === 'PER_DAY' ? 'selected' : ''}>คิดเป็นวัน (${m.fuelRate || 0} ลิตร/วัน)</option>
+                  <option value="PER_HOUR">คิดเป็นชั่วโมง (${m.ratePerHour || 0} ลิตร/ชม.)</option>
+                  <option value="PER_KM" ${defaultMode === 'PER_KM' ? 'selected' : ''}>คิดเป็นกิโลเมตร (${m.ratePerKm || 0} ลิตร/กม.)</option>
+                </select>
+              </div>
+
+              <div id="${mKey}_inputBox" class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">ระบุ ชม./วัน หรือ กม.</label>
+                  <input type="number" step="0.1" id="${mKey}_customVal" oninput="recalculatePerMachineFuel('${prefix}')" value="${defaultMode === 'PER_KM' ? '0' : (m.standardHoursPerDay || 6)}" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-1.5 font-bold text-slate-900 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-amber-700 mb-0.5">ลิตรรวมคันนี้</label>
+                  <input type="number" id="${mKey}_subFuel" readonly value="0" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-1.5 font-black text-amber-700 outline-none">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderOperatorCheckboxes(containerId, prefix, selectedStr) {
+      const oContainer = document.getElementById(containerId);
+      oContainer.innerHTML = '';
+      const selectedOperators = selectedStr ? selectedStr.split(', ') : [];
+
+      GLOBAL_DATA.operators.forEach(o => {
+        const isChecked = selectedOperators.includes(o.name) ? 'checked' : '';
+        oContainer.innerHTML += `
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-blue-600">
+            <span class="text-xs"><b>${o.name}</b> <span class="text-slate-500">(${o.position || 'ช่างผู้ขับ'})</span></span>
+          </label>
+        `;
+      });
+    }
+
+    function toggleMachineCalcPanel(mKey, prefix) {
+      const chk = document.getElementById(`${mKey}_chk`);
+      const panel = document.getElementById(`${mKey}_panel`);
+      const card = document.getElementById(`${mKey}_card`);
+
+      if (chk && panel && card) {
+        if (chk.checked) {
+          panel.classList.remove('hidden');
+          card.className = "p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-amber-50/60 border-amber-300 ring-1 ring-amber-400";
+        } else {
+          panel.classList.add('hidden');
+          card.className = "p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-slate-50 border-slate-200/90";
+        }
+      }
+      recalculatePerMachineFuel(prefix);
+    }
+
+    function recalculatePerMachineFuel(prefix = 'modal') {
+      let s = '', e = '', oilPrice = 0;
+
+      if (prefix === 'modal') {
+        s = document.getElementById('modalPlanStartDate').value;
+        e = document.getElementById('modalPlanEndDate').value;
+        oilPrice = parseFloat(document.getElementById('modalPlanOilPrice').value) || 0;
+      } else {
+        s = document.getElementById('actModalStart').value;
+        e = document.getElementById('actModalEnd').value;
+        oilPrice = parseFloat(document.getElementById('actJobOilPriceVal').value) || 35.00;
+      }
+
+      const diffDays = calculateDaysBetween(s, e);
+      if (prefix === 'modal') {
+        document.getElementById('modalPlanDays').value = diffDays;
+      } else {
+        document.getElementById('actModalDays').value = diffDays;
+      }
+
+      let grandTotalFuelLiters = 0;
+
+      GLOBAL_DATA.machines.forEach(m => {
+        const mKey = `${prefix}_pm_${m.rowIndex}`;
+        const chk = document.getElementById(`${mKey}_chk`);
+        
+        if (chk && chk.checked) {
+          const calcMode = document.getElementById(`${mKey}_calcMode`).value;
+          const customVal = parseFloat(document.getElementById(`${mKey}_customVal`).value) || 0;
+          let subFuel = 0;
+
+          if (calcMode === 'PER_DAY') {
+            subFuel = diffDays * (m.fuelRate || (m.ratePerHour * (m.standardHoursPerDay || 6)));
+          } else if (calcMode === 'PER_HOUR') {
+            subFuel = diffDays * customVal * (m.ratePerHour || 0);
+          } else if (calcMode === 'PER_KM') {
+            subFuel = customVal * (m.ratePerKm || 0);
+          }
+
+          document.getElementById(`${mKey}_subFuel`).value = subFuel.toFixed(2);
+          grandTotalFuelLiters += subFuel;
+        }
+      });
+
+      if (prefix === 'modal') {
+        document.getElementById('modalPlanFuel').value = grandTotalFuelLiters.toFixed(2);
+        document.getElementById('modalPlanFuelAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
+      } else {
+        document.getElementById('actModalFuel').value = grandTotalFuelLiters.toFixed(2);
+        document.getElementById('actModalAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
+      }
+    }
+
+    function closePlanModal() { document.getElementById('planModal').classList.add('hidden'); }
+
+    async function saveJobPlan() {
+      const selMachines = [];
+      document.querySelectorAll('input[name="modal_chkMachine"]:checked').forEach(c => selMachines.push(c.value));
+
+      const selOperators = [];
+      document.querySelectorAll('input[name="modal_chkOperator"]:checked').forEach(c => selOperators.push(c.value));
+
+      const payload = {
+        rowIndex: parseInt(document.getElementById('modalRowIndex').value),
+        approvalStatus: document.getElementById('modalApprovalStatus').value,
+        approvalRemark: document.getElementById('modalApprovalRemark').value,
+        planStartDate: document.getElementById('modalPlanStartDate').value,
+        planEndDate: document.getElementById('modalPlanEndDate').value,
+        planDays: parseInt(document.getElementById('modalPlanDays').value) || 0,
+        assignedMachine: selMachines.join(', '),
+        assignedOperator: selOperators.join(', '),
+        planFuelLiters: parseFloat(document.getElementById('modalPlanFuel').value) || 0,
+        planOilPrice: parseFloat(document.getElementById('modalPlanOilPrice').value) || 0,
+        approvedBy: CURRENT_USER.name
+      };
+
+      const res = await callGAS('updateJobApprovalAndPlan', payload);
+      if (res && res.success) {
+        showToast('อนุมัติและบันทึกแผนงานสำเร็จ');
+        closePlanModal();
+        loadData();
+      }
+    }
+
+    async function deleteJob(rowIndex) {
+      if (!confirm('ยืนยันลบแผนงานนี้ออกจากระบบ?')) return;
+      const res = await callGAS('deleteJobRow', { rowIndex: rowIndex });
+      if (res && res.success) {
+        showToast('ลบแผนงานเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    function openActualModal(rowIndex) {
+      const job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
+      if (!job) return;
+
+      document.getElementById('actRowIndex').value = rowIndex;
+      document.getElementById('actJobStatus').value = job.jobProgressStatus || 'กำลังปฏิบัติงาน';
+      document.getElementById('actIssueDetail').value = job.issueDetail || '';
+      
+      const startDate = job.actualStartDate || job.planStartDate || '';
+      const endDate = job.actualEndDate || job.planEndDate || '';
+
+      document.getElementById('actModalStart').value = startDate;
+      document.getElementById('actModalEnd').value = endDate;
+      
+      const jobOilPrice = parseFloat(job.planOilPrice) || 35.00;
+      document.getElementById('lblJobOilPrice').innerText = jobOilPrice.toFixed(2);
+      document.getElementById('actJobOilPriceVal').value = jobOilPrice;
+
+      renderPerMachineCheckboxes('actMachineCheckboxes', 'act', job.assignedMachine);
+      renderOperatorCheckboxes('actOperatorCheckboxes', 'act', job.assignedOperator);
+
+      toggleCompletedFields();
+      recalculatePerMachineFuel('act');
+
+      document.getElementById('actualModal').classList.remove('hidden');
+    }
+
+    function closeActualModal() { document.getElementById('actualModal').classList.add('hidden'); }
+
+    function toggleCompletedFields() {
+      const status = document.getElementById('actJobStatus').value;
+      const cFields = document.getElementById('completedFields');
+      const iContainer = document.getElementById('issueContainer');
+
+      if (status === 'ปฏิบัติงานแล้วเสร็จ') {
+        cFields.classList.remove('hidden');
+      } else {
+        cFields.classList.add('hidden');
+      }
+
+      if (status === 'มีปัญหา/อุปสรรค') {
+        iContainer.classList.remove('hidden');
+      } else {
+        iContainer.classList.add('hidden');
+      }
+    }
+
+    async function saveActualProgressFromModal() {
+      const status = document.getElementById('actJobStatus').value;
+
+      const selMachines = [];
+      document.querySelectorAll('input[name="act_chkMachine"]:checked').forEach(c => selMachines.push(c.value));
+
+      const selOperators = [];
+      document.querySelectorAll('input[name="act_chkOperator"]:checked').forEach(c => selOperators.push(c.value));
+
+      const payload = {
+        rowIndex: parseInt(document.getElementById('actRowIndex').value),
+        jobProgressStatus: status,
+        issueDetail: document.getElementById('actIssueDetail').value,
+        actualStartDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalStart').value : '',
+        actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalEnd').value : '',
+        actualDays: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseInt(document.getElementById('actModalDays').value) || 0 : 0,
+        actualFuelLiters: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalFuel').value) || 0 : 0,
+        totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0,
+        assignedMachine: selMachines.join(', '),
+        assignedOperator: selOperators.join(', ')
+      };
+
+      const res = await callGAS('updateJobActualProgress', payload);
+      if (res && res.success) {
+        showToast('อัปเดตการปฏิบัติงานสำเร็จ');
+        closeActualModal();
+        loadData();
+      }
+    }
+
+    async function rejectRequest(rowIndex) {
+      const reason = prompt('ระบุเหตุผลในการปฏิเสธคำขอนี้:');
+      if (reason === null) return;
+
+      const payload = {
+        rowIndex: rowIndex,
+        approvalStatus: 'Rejected',
+        approvalRemark: reason,
+        approvedBy: CURRENT_USER.name
+      };
+
+      const res = await callGAS('updateJobApprovalAndPlan', payload);
+      if (res && res.success) {
+        showToast('ปฏิเสธคำขอเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    function renderEasyPassActionButtons(item) {
+      const isSent = Boolean(item.isEasyPassSent);
+
+      if (!isSent) {
+        return `
+          <button onclick="confirmAndSendEasyPass(${item.rowIndex}, false)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-sm transition flex items-center gap-1">
+            <i class="fa-solid fa-paper-plane"></i> ส่งตัดเงิน Easy Pass
+          </button>
+        `;
+      } else {
+        return `
+          <div class="flex flex-col sm:flex-row items-center gap-1.5">
+            <span class="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1">
+              <i class="fa-solid fa-check-circle"></i> ส่งตัดเงินแล้ว (${item.easyPassTxId || '-'})
+            </span>
+            <button onclick="confirmAndSendEasyPass(${item.rowIndex}, true)" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[11px] shadow-sm transition flex items-center gap-1">
+              <i class="fa-solid fa-rotate-right"></i> ส่งอีกครั้ง
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    async function confirmAndSendEasyPass(rowIndex, isResend) {
+      const jobData = getJobDataByRowIndex(rowIndex);
+
+      if (isResend) {
+        const confirmMessage = `⚠️ เตือนการส่งคำร้องซ้ำ!\n\nรายการ: ${jobData.requestId} (${jobData.villageName})\nจำนวนเงิน: ${(jobData.totalAmount || 0).toLocaleString()} บาท\n\nยืนยันการส่งคำร้องตัดเงินอีกครั้ง?`;
+        if (!confirm(confirmMessage)) return;
+      } else {
+        if (!confirm(`ยืนยันการส่งคำร้องตัดเงิน Easy Pass โครงการ ${jobData.requestId} จำนวน ${(jobData.totalAmount || 0).toLocaleString()} บาท?`)) return;
+      }
+
+      showToast('กำลังส่งคำร้อง Easy Pass ไปยังแอปบริหารงบประมาณ...', 'info');
+
+      try {
+        const res = await callGAS('sendToEasyPassIntegration', { jobData: jobData, isResend: isResend });
+        if (res && res.success) {
+          showToast(res.isResend ? 'ส่งคำร้องซ้ำไปยังแอปงบประมาณเรียบร้อยแล้ว' : 'ส่งคำร้องตัดเงินเรียบร้อยแล้ว');
+          loadData();
+        }
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาดในการส่ง Easy Pass: ' + err.message, 'error');
+      }
+    }
+
+    function renderSummaryJobs() {
+      const container = document.getElementById('summaryJobsContainer');
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.finishedEasyPassJobs.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 font-semibold border border-slate-200/80 rounded-2xl text-sm">ไม่มีรายการงานที่เสร็จสิ้นค้างส่งตัดเงิน</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.finishedEasyPassJobs.forEach(job => {
+        const canAction = CURRENT_USER.role === 'SUPER_ADMIN';
+
+        container.innerHTML += `
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect easypass-card-row bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer transition ${job.isEasyPassSent ? 'bg-emerald-50/30 border-emerald-300' : 'bg-white border-amber-300'}" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.easyPassTxId}">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
+                <i class="fa-solid fa-circle-info text-emerald-600 mr-2"></i> ${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
+              </span>
+              ${job.isEasyPassSent ? `<span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm"><i class="fa-solid fa-check-circle mr-1"></i> ตัดเงินแล้ว (TX: ${job.easyPassTxId})</span>` : '<span class="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm"><i class="fa-solid fa-clock mr-1"></i> พร้อมส่งตัดเงิน Easy Pass</span>'}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div><span class="font-semibold text-slate-400 block text-xs">ผู้ยื่นคำขอ</span> <b>${job.requesterName}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">เครื่องจักร/รถ</span> <b class="text-amber-700">${job.assignedMachine || '-'}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">ช่างผู้ปฏิบัติงาน</span> <b class="text-blue-700">${job.assignedOperator || '-'}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">ช่วงวันปฏิบัติงานจริง</span> <b>${formatThaiDate(job.actualStartDate)} ถึง ${formatThaiDate(job.actualEndDate)}</b></div>
+            </div>
+
+            <div class="flex justify-between items-center flex-wrap gap-2 pt-1">
+              <div class="text-xs sm:text-sm text-slate-700">
+                <span>น้ำมันจริง: <b class="text-amber-600">${job.actualFuelLiters || 0} ลิตร</b> (ราคาน้ำมันจัดแผน: ${job.planOilPrice || '-'} บ.)</span> | 
+                <span>ยอดเงินตัดงบ Easy Pass: <b class="text-emerald-700 text-base font-black">${(job.totalAmount || 0).toLocaleString()} บาท</b></span>
+              </div>
+              ${canAction ? `
+                <div onclick="event.stopPropagation()">
+                  ${renderEasyPassActionButtons(job)}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterEasyPassTable() {
+      const q = document.getElementById('searchEasyPass').value.toLowerCase();
+      document.querySelectorAll('#summaryJobsContainer .easypass-card-row').forEach(row => {
+        const text = row.getAttribute('data-search').toLowerCase();
+        if (text.includes(q)) row.classList.remove('hidden'); else row.classList.add('hidden');
+      });
+    }
+
+    function renderAnalyticsDashboard() {
+      const allJobs = [...GLOBAL_DATA.approvedJobs, ...GLOBAL_DATA.pendingRequests];
+      document.getElementById('dashTotalJobs').innerText = allJobs.length;
+
+      let totalFuel = 0;
+      let totalAmount = 0;
+
+      const fuelByMachine = {};
+      const budgetByVillage = {};
+
+      GLOBAL_DATA.finishedEasyPassJobs.forEach(job => {
+        const fuel = parseFloat(job.actualFuelLiters) || parseFloat(job.planFuelLiters) || 0;
+        const amt = parseFloat(job.totalAmount) || 0;
+
+        totalFuel += fuel;
+        totalAmount += amt;
+
+        const mName = job.assignedMachine || 'ไม่ระบุเครื่องจักร';
+        const machinesList = mName.split(', ');
+        machinesList.forEach(m => {
+          fuelByMachine[m] = (fuelByMachine[m] || 0) + (fuel / machinesList.length);
+        });
+
+        const vName = `หมู่ ${job.villageNo} ${job.villageName}`;
+        budgetByVillage[vName] = (budgetByVillage[vName] || 0) + amt;
+      });
+
+      document.getElementById('dashTotalFuel').innerText = `${totalFuel.toLocaleString()} ลิตร`;
+      document.getElementById('dashTotalAmount').innerText = `${totalAmount.toLocaleString()} บาท`;
+
+      const ctxFuel = document.getElementById('fuelByMachineChart').getContext('2d');
+      if (fuelChartInstance) fuelChartInstance.destroy();
+      fuelChartInstance = new Chart(ctxFuel, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(fuelByMachine),
+          datasets: [{
+            label: 'น้ำมันเชื้อเพลิง (ลิตร)',
+            data: Object.values(fuelByMachine),
+            backgroundColor: '#f59e0b',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+
+      const ctxVillage = document.getElementById('budgetByVillageChart').getContext('2d');
+      if (villageChartInstance) villageChartInstance.destroy();
+      villageChartInstance = new Chart(ctxVillage, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(budgetByVillage),
+          datasets: [{
+            label: 'งบ Easy Pass (บาท)',
+            data: Object.values(budgetByVillage),
+            backgroundColor: '#10b981',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+    }
+
+    function toggleAddMachineForm() { 
+      const form = document.getElementById('addMachineForm');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        renderMachineOperatorCheckboxes('newMachineOperatorCheckboxes', []);
+      }
+    }
+    
+    function toggleAddOpForm() { 
+      const form = document.getElementById('addOpForm');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        renderOpMachineCheckboxes('newOpMachineCheckboxes', []);
+      }
+    }
+    
+    function toggleAddVillageForm() { document.getElementById('addVillageForm').classList.toggle('hidden'); }
+
+    function renderMasterLists() {
+      renderMasterMachines();
+      renderMasterOperators();
+      renderMasterVillages();
+    }
+
+    function renderMachineOperatorCheckboxes(containerId, selectedArray) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.operators.length === 0) {
+        container.innerHTML = `<span class="text-slate-400 italic">ไม่มีข้อมูลช่าง/ผู้ขับในระบบ</span>`;
+        return;
+      }
+
+      GLOBAL_DATA.operators.forEach(o => {
+        const isChecked = selectedArray.includes(o.name) ? 'checked' : '';
+        container.innerHTML += `
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1 cursor-pointer hover:bg-slate-100 p-1 rounded">
+            <input type="checkbox" name="${containerId}_chk" value="${o.name}" ${isChecked} class="rounded text-amber-600">
+            <span><b>${o.name}</b> (${o.position || 'พนักงานขับ'})</span>
+          </label>
+        `;
+      });
+    }
+
+    function renderMasterMachines() {
+      const grid = document.getElementById('masterMachineGrid');
+      grid.innerHTML = '';
+
+      if (GLOBAL_DATA.machines.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 border rounded-2xl">ไม่มีข้อมูลเครื่องจักร</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.machines.forEach((m, idx) => {
+        const numStr = String(idx + 1).padStart(2, '0');
+        
+        let statusBg = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (m.status === 'ใช้งานได้ชั่วคราว') statusBg = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (m.status === 'ชำรุด/ส่งซ่อม' || m.status === 'ไม่พร้อมใช้งาน') statusBg = 'bg-rose-100 text-rose-800 border-rose-300';
+
+        const placeholderImg = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=80';
+        const displayImg = m.imgUrl || placeholderImg;
+
+        const rateDetail = `${m.fuelRate || 0} ลิตร/วัน (${m.ratePerHour || 0} ลิตร/ชม.) | เกณฑ์กิโลเมตร: ${m.ratePerKm || 0} ลิตร/กม.`;
+
+        grid.innerHTML += `
+          <div class="card-hover-effect bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col sm:flex-row gap-3 items-start relative">
+            <div class="w-full sm:w-44 flex-shrink-0 relative">
+              <span class="absolute -top-2 -left-2 bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 rounded-full shadow-md z-10">${numStr}</span>
+              <img src="${displayImg}" onerror="this.src='${placeholderImg}'" class="w-full h-32 object-cover rounded-xl border border-slate-100">
+            </div>
+
+            <div class="flex-grow space-y-1.5 w-full text-xs sm:text-sm">
+              <div class="flex justify-between items-start flex-wrap gap-1">
+                <h4 class="font-extrabold text-slate-900 text-base">${m.name}</h4>
+                <div class="flex items-center space-x-1">
+                  <button onclick="openEditMachineModal(${m.rowIndex})" class="text-amber-700 hover:text-amber-900 font-bold text-xs bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition shadow-sm">
+                    <i class="fa-solid fa-pen-to-square mr-0.5"></i> แก้ไข
+                  </button>
+                  <button onclick="delMaster('MACHINE', ${m.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-trash mr-0.5"></i> ลบ
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-2 pt-0.5">
+                <span class="text-slate-500 text-xs font-semibold">สถานะ:</span>
+                <select onchange="quickUpdateMachineStatus(${m.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusBg} transition cursor-pointer">
+                  <option value="ใช้งานได้" ${m.status === 'ใช้งานได้' ? 'selected' : ''}>ใช้งานได้</option>
+                  <option value="ใช้งานได้ชั่วคราว" ${m.status === 'ใช้งานได้ชั่วคราว' ? 'selected' : ''}>ใช้งานได้ชั่วคราว</option>
+                  <option value="ชำรุด/ส่งซ่อม" ${m.status === 'ชำรุด/ส่งซ่อม' ? 'selected' : ''}>ชำรุด / ส่งซ่อม</option>
+                </select>
+              </div>
+
+              <div class="text-slate-600 space-y-0.5 pt-1.5 border-t border-slate-100 text-xs">
+                <div><b>ยี่ห้อ:</b> ${m.brand || '-'} | <b>ทะเบียน:</b> ${m.plate || '-'}</div>
+                <div><b>ครุภัณฑ์:</b> ${m.assetNo || '-'}</div>
+                <div><b>เกณฑ์สิ้นเปลือง:</b> <span class="font-bold text-amber-700">${rateDetail}</span></div>
+                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-800">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}: ${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
+                <div><b>อุปกรณ์เสริม:</b> <span class="text-slate-500">${m.equipment || 'ไม่มี'}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderOpMachineCheckboxes(containerId, selectedArray) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.machines.length === 0) {
+        container.innerHTML = `<span class="text-slate-400 italic">ไม่มีข้อมูลเครื่องจักรในระบบ</span>`;
+        return;
+      }
+
+      GLOBAL_DATA.machines.forEach(m => {
+        const isChecked = selectedArray.includes(m.name) ? 'checked' : '';
+        container.innerHTML += `
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="${containerId}_chk" value="${m.name}" ${isChecked} class="rounded text-blue-600">
+            <span><b>${m.name}</b> (${m.brand || 'ยี่ห้อ N/A'} ${m.plate ? 'ทะเบียน ' + m.plate : ''})</span>
+          </label>
+        `;
+      });
+    }
+
+    function renderMasterOperators() {
+      const grid = document.getElementById('masterOperatorGrid');
+      grid.innerHTML = '';
+
+      if (GLOBAL_DATA.operators.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 border rounded-2xl">ไม่มีข้อมูลช่างผู้ขับ</div>`;
+        return;
+      }
+
+      const placeholderAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=80';
+
+      GLOBAL_DATA.operators.forEach(o => {
+        let statusColor = 'bg-blue-50 text-blue-700 border-blue-200';
+        if (o.status === 'ติดภารกิจ' || o.status === 'ลาป่วย') statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        const displayImg = o.imgUrl || placeholderAvatar;
+
+        grid.innerHTML += `
+          <div class="card-hover-effect bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between relative">
+            <div>
+              <div class="flex justify-between items-start space-x-3">
+                <div class="flex items-center space-x-3">
+                  <img src="${displayImg}" onerror="this.src='${placeholderAvatar}'" class="w-12 h-12 object-cover rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                  <div>
+                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">${o.name}</h4>
+                    <p class="text-xs text-slate-500 font-semibold">${o.position || 'พนักงานขับเครื่องจักรกล'}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1 flex-shrink-0">
+                  <button onclick="openEditOpModal(${o.rowIndex})" class="text-blue-700 hover:text-blue-900 font-bold text-xs bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm" title="แก้ไข">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button onclick="delMaster('OPERATOR', ${o.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg transition" title="ลบ">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 space-y-1 mt-3">
+                <div class="font-bold text-indigo-950 text-[11px] flex items-center">
+                  <i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i>เครื่องจักรที่รับผิดชอบ:
+                </div>
+                <div class="text-slate-700 font-semibold leading-relaxed">
+                  ${o.responsibility ? o.responsibility.split(', ').map(r => `<span class="inline-block bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[11px] mr-1 mb-1">${r}</span>`).join('') : '<span class="text-slate-400 italic">ไม่ได้ระบุ</span>'}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs text-slate-500 font-semibold">สถานะการทำงาน:</span>
+              <select onchange="quickUpdateOperatorStatus(${o.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusColor} cursor-pointer">
+                <option value="ปฏิบัติงานปกติ" ${o.status === 'ปฏิบัติงานปกติ' ? 'selected' : ''}>ปฏิบัติงานปกติ</option>
+                <option value="ติดภารกิจ" ${o.status === 'ติดภารกิจ' ? 'selected' : ''}>ติดภารกิจ</option>
+                <option value="ลาพักผ่อน/ป่วย" ${o.status === 'ลาพักผ่อน/ป่วย' ? 'selected' : ''}>ลาพักผ่อน/ป่วย</option>
+              </select>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderMasterVillages() {
+      const grid = document.getElementById('masterVillageGrid');
+      grid.innerHTML = '';
+
+      GLOBAL_DATA.villages.forEach(v => {
+        grid.innerHTML += `
+          <div class="bg-slate-50 hover:bg-emerald-50/50 border border-slate-200/80 rounded-xl p-3 text-xs font-bold text-slate-800 flex justify-between items-center transition shadow-sm">
+            <span>หมู่ ${v.no} ${v.name}</span>
+            <div class="flex items-center space-x-1">
+              <button onclick="openEditVillageModal(${v.rowIndex})" class="text-emerald-700 hover:text-emerald-900 font-bold px-1.5 py-0.5 hover:bg-emerald-100 rounded transition" title="แก้ไข">✏️</button>
+              <button onclick="delMaster('VILLAGE', ${v.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 hover:bg-rose-100 rounded transition" title="ลบ">✕</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function openEditMachineModal(rowIndex) {
+      const m = GLOBAL_DATA.machines.find(item => item.rowIndex === rowIndex);
+      if (!m) return;
+
+      document.getElementById('editMachineRowIndex').value = rowIndex;
+      document.getElementById('editMachineName').value = m.name || '';
+      document.getElementById('editMachineBrand').value = m.brand || '';
+      document.getElementById('editMachinePlate').value = m.plate || '';
+      document.getElementById('editMachineAssetNo').value = m.assetNo || '';
+      document.getElementById('editMachineEq').value = m.equipment || '';
+      document.getElementById('editMachineRateKm').value = m.ratePerKm || 0;
+      document.getElementById('editMachineRateHr').value = m.ratePerHour || 0;
+      document.getElementById('editMachineRateDay').value = m.fuelRate || 0;
+      document.getElementById('editMachineStdHr').value = m.standardHoursPerDay || 6;
+      document.getElementById('editMachineImgOld').value = m.imgUrl || '';
+
+      const selOperators = m.caretaker ? m.caretaker.split(', ') : [];
+      renderMachineOperatorCheckboxes('editMachineOperatorCheckboxes', selOperators);
+
+      document.getElementById('editMachineModal').classList.remove('hidden');
+    }
+
+    function closeEditMachineModal() { document.getElementById('editMachineModal').classList.add('hidden'); }
+
+    async function saveEditMachine() {
+      const fileInput = document.getElementById('editMachineFileInput');
+      const btnSave = document.getElementById('btnSaveEditMachine');
+
+      const selOperators = [];
+      document.querySelectorAll('input[name="editMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
+
+      const rateKm = parseFloat(document.getElementById('editMachineRateKm').value) || 0;
+      const rateHr = parseFloat(document.getElementById('editMachineRateHr').value) || 0;
+      const rateDay = parseFloat(document.getElementById('editMachineRateDay').value) || 0;
+      const stdHr = parseFloat(document.getElementById('editMachineStdHr').value) || 6;
+
+      const data = {
+        rowIndex: parseInt(document.getElementById('editMachineRowIndex').value),
+        name: document.getElementById('editMachineName').value,
+        brand: document.getElementById('editMachineBrand').value,
+        plate: document.getElementById('editMachinePlate').value,
+        assetNo: document.getElementById('editMachineAssetNo').value,
+        equipment: document.getElementById('editMachineEq').value,
+        ratePerKm: rateKm,
+        ratePerHour: rateHr,
+        fuelRate: rateDay,
+        standardHoursPerDay: stdHr,
+        caretaker: selOperators.join(', '),
+        imgUrlOld: document.getElementById('editMachineImgOld').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadMachineImage', async function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+
+        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'MACHINE', data: data });
+        if (res && res.success) {
+          showToast('แก้ไขข้อมูลเครื่องจักรสำเร็จ');
+          closeEditMachineModal();
+          loadData();
+        }
+      });
+    }
+
+    function openEditOpModal(rowIndex) {
+      const o = GLOBAL_DATA.operators.find(item => item.rowIndex === rowIndex);
+      if (!o) return;
+
+      document.getElementById('editOpRowIndex').value = rowIndex;
+      document.getElementById('editOpName').value = o.name || '';
+      document.getElementById('editOpPosition').value = o.position || '';
+      document.getElementById('editOpImgOld').value = o.imgUrl || '';
+
+      const selMachines = o.responsibility ? o.responsibility.split(', ') : [];
+      renderOpMachineCheckboxes('editOpMachineCheckboxes', selMachines);
+
+      document.getElementById('editOpModal').classList.remove('hidden');
+    }
+
+    function closeEditOpModal() { document.getElementById('editOpModal').classList.add('hidden'); }
+
+    async function saveEditOperator() {
+      const fileInput = document.getElementById('editOpFileInput');
+      const btnSave = document.getElementById('btnSaveEditOp');
+
+      const selMachines = [];
+      document.querySelectorAll('input[name="editOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
+
+      const data = {
+        rowIndex: parseInt(document.getElementById('editOpRowIndex').value),
+        name: document.getElementById('editOpName').value,
+        position: document.getElementById('editOpPosition').value,
+        responsibility: selMachines.join(', '),
+        imgUrlOld: document.getElementById('editOpImgOld').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadOperatorImage', async function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+
+        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'OPERATOR', data: data });
+        if (res && res.success) {
+          showToast('แก้ไขข้อมูลช่างผู้ขับสำเร็จ');
+          closeEditOpModal();
+          loadData();
+        }
+      });
+    }
+
+    function openEditVillageModal(rowIndex) {
+      const v = GLOBAL_DATA.villages.find(item => item.rowIndex === rowIndex);
+      if (!v) return;
+
+      document.getElementById('editVillageRowIndex').value = rowIndex;
+      document.getElementById('editVillageNo').value = v.no || '';
+      document.getElementById('editVillageName').value = v.name || '';
+
+      document.getElementById('editVillageModal').classList.remove('hidden');
+    }
+
+    function closeEditVillageModal() { document.getElementById('editVillageModal').classList.add('hidden'); }
+
+    async function saveEditVillage() {
+      const data = {
+        rowIndex: parseInt(document.getElementById('editVillageRowIndex').value),
+        no: document.getElementById('editVillageNo').value,
+        name: document.getElementById('editVillageName').value
+      };
+
+      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
+
+      const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'VILLAGE', data: data });
+      if (res && res.success) {
+        showToast('แก้ไขข้อมูลหมู่บ้านสำเร็จ');
+        closeEditVillageModal();
+        loadData();
+      }
+    }
+
+    function processFileUpload(fileInput, serverActionName, callback) {
+      if (!fileInput.files || !fileInput.files[0]) {
+        callback('');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      showToast('กำลังประมวลผลและอัปโหลดรูปภาพลง Google Drive...', 'info');
+
+      reader.onload = async function(e) {
+        const base64Result = e.target.result;
+        if (!base64Result) {
+          showToast('อ่านข้อมูลไฟล์ภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
+          return;
+        }
+
+        try {
+          const res = await callGAS(serverActionName, { base64Data: base64Result, fileName: file.name });
+          callback(res ? (res.imgUrl || '') : '');
+        } catch (err) {
+          showToast('อัปโหลดไฟล์ภาพไม่สำเร็จ: ' + err.message, 'error');
+        }
+      };
+
+      reader.onerror = function() {
+        showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ภาพ', 'error');
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    async function quickUpdateMachineStatus(rowIndex, newStatus) {
+      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'MACHINE', data: { rowIndex: rowIndex, status: newStatus } });
+      if (res && res.success) {
+        showToast('อัปเดตสถานะเครื่องจักรเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    async function quickUpdateOperatorStatus(rowIndex, newStatus) {
+      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'OPERATOR', data: { rowIndex: rowIndex, status: newStatus } });
+      if (res && res.success) {
+        showToast('อัปเดตสถานะช่างผู้ขับเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    function addMasterMachine() {
+      const fileInput = document.getElementById('newMachineFileInput');
+      const btnSave = document.getElementById('btnSaveAddMachine');
+      const selOperators = [];
+      document.querySelectorAll('input[name="newMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
+
+      const rateKm = parseFloat(document.getElementById('newMachineRateKm').value) || 0;
+      const rateHr = parseFloat(document.getElementById('newMachineRateHr').value) || 0;
+      const rateDay = parseFloat(document.getElementById('newMachineRateDay').value) || 0;
+      const stdHr = parseFloat(document.getElementById('newMachineStdHr').value) || 6;
+
+      const data = {
+        name: document.getElementById('newMachineName').value,
+        brand: document.getElementById('newMachineBrand').value,
+        plate: document.getElementById('newMachinePlate').value,
+        assetNo: document.getElementById('newMachineAssetNo').value,
+        fuelRate: rateDay,
+        ratePerKm: rateKm,
+        ratePerHour: rateHr,
+        standardHoursPerDay: stdHr,
+        caretaker: selOperators.join(', '),
+        equipment: document.getElementById('newMachineEq').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadMachineImage', function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+        executeAddMasterMachine(data);
+      });
+    }
+
+    async function executeAddMasterMachine(data) {
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'MACHINE', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลเครื่องจักรสำเร็จ');
+        toggleAddMachineForm();
+        loadData();
+      }
+    }
+
+    function addMasterOperator() {
+      const fileInput = document.getElementById('newOpFileInput');
+      const btnSave = document.getElementById('btnSaveAddOp');
+      const selMachines = [];
+      document.querySelectorAll('input[name="newOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
+
+      const data = {
+        name: document.getElementById('newOpName').value,
+        position: document.getElementById('newOpPosition').value,
+        responsibility: selMachines.join(', '),
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadOperatorImage', function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+        executeAddMasterOperator(data);
+      });
+    }
+
+    async function executeAddMasterOperator(data) {
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'OPERATOR', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลช่างผู้ขับสำเร็จ');
+        toggleAddOpForm();
+        loadData();
+      }
+    }
+
+    async function addMasterVillage() {
+      const data = {
+        no: document.getElementById('newVillageNo').value,
+        name: document.getElementById('newVillageName').value
+      };
+
+      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
+
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'VILLAGE', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลหมู่บ้านสำเร็จ');
+        toggleAddVillageForm();
+        loadData();
+      }
+    }
+
+    async function delMaster(type, rowIndex) {
+      if (!confirm('ยืนยันลบข้อมูลนี้ออกจากระบบ?')) return;
+      const res = await callGAS('manageMasterData', { action: 'DELETE', entityType: type, data: { rowIndex: rowIndex } });
+      if (res && res.success) {
+        showToast('ลบข้อมูลเรียบร้อยแล้ว');
+        loadData();
+      }
     }
   </script>
 </body>
