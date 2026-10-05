@@ -79,7 +79,6 @@
       </button>
       <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
         <i class="fa-solid fa-receipt text-emerald-600"></i> 3. สรุปผลส่งตัดเงิน Easy Pass
-        <span id="easyPassBadgeTab" class="hidden ml-1 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
       </button>
       <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
         <i class="fa-solid fa-chart-pie text-purple-600"></i> 4. Dashboard สรุปผล
@@ -121,10 +120,6 @@
             <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
             สรุปผลงานจริง และประวัติการส่งตัดเงิน Easy Pass (28 หมู่บ้าน)
           </h2>
-          <div class="relative w-full sm:w-80">
-            <input type="text" id="searchEasyPass" onkeyup="filterEasyPassTable()" placeholder="ค้นหารหัส, หมู่บ้าน, TX ID..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition placeholder-slate-400">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs sm:text-sm"></i>
-          </div>
         </div>
         <div id="summaryJobsContainer" class="space-y-3"></div>
       </div>
@@ -159,22 +154,6 @@
             <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">งบตัดชำระ Easy Pass สะสม</div>
             <div id="dashTotalAmount" class="text-3xl font-black text-emerald-600 mt-0.5">0 บาท</div>
           </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-chart-column text-amber-500"></i> สรุปการใช้น้ำมันเชื้อเพลิงแยกตามเครื่องจักร (ลิตร)
-          </h3>
-          <div class="h-72"><canvas id="fuelByMachineChart"></canvas></div>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-chart-bar text-emerald-600"></i> สรุปงบประมาณ Easy Pass สะสมแยกตามหมู่บ้าน (บาท)
-          </h3>
-          <div class="h-72"><canvas id="budgetByVillageChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -259,7 +238,7 @@
       <div class="space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block font-bold text-slate-700 mb-1">ประเภทสิทธิ์ผู้ใช้งาน</label>
-          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900" onkeyup="if(event.key==='Enter') performLogin()">
+          <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
             <option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
             <option value="DATA_ENTRY">เจ้าหน้าที่บันทึกคำขอ (Data Entry)</option>
           </select>
@@ -290,9 +269,6 @@
       <div id="detailsContent" class="space-y-3"></div>
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-        <button onclick="exportJobPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
-          <i class="fa-solid fa-file-pdf text-base"></i> พิมพ์ใบรายงานผล PDF
-        </button>
         <button onclick="closeDetailsModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs font-bold">ปิดหน้าต่าง</button>
       </div>
     </div>
@@ -387,7 +363,6 @@
           <div class="lg:col-span-7 space-y-3">
             <label class="block text-xs font-extrabold text-slate-900 text-sm flex items-center justify-between">
               <span><i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i> เลือกเครื่องจักรกล & กำหนดเงื่อนไขคิดน้ำมันประจำรถ</span>
-              <span class="text-xs font-normal text-slate-500">* ติ๊กถูกที่ตัวรถเพื่อขยายเงื่อนไขคำนวณ</span>
             </label>
             <div id="modalMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
           </div>
@@ -411,8 +386,6 @@
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
     let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
     let CURRENT_SELECTED_REQUEST_ID = '';
-    let fuelChartInstance = null;
-    let villageChartInstance = null;
 
     function callServer(functionName, payload) {
       return new Promise((resolve, reject) => {
@@ -497,6 +470,7 @@
     }
 
     async function loadData() {
+      showToast('กำลังโหลดข้อมูลฐานข้อมูล...', 'info');
       try {
         const data = await callServer('getInitialData');
         if (!data) return;
@@ -504,9 +478,9 @@
         renderVillagesDropdown();
         renderPendingTable();
         renderJobsTable();
-        renderSummaryJobs();
         renderAnalyticsDashboard();
         updateRoleUI();
+        showToast('โหลดข้อมูลสำเร็จ');
       } catch (err) {
         console.error('Error loading data:', err);
       }
@@ -562,25 +536,30 @@
       const role = document.getElementById('loginRole').value;
       const pass = document.getElementById('loginPass').value;
 
-      const res = await callServer('checkLogin', { role: role, password: pass });
-      if (res && res.success) {
-        CURRENT_USER = res;
-        
-        localStorage.setItem('MACHINE_APP_ROLE', CURRENT_USER.role);
-        localStorage.setItem('MACHINE_APP_NAME', CURRENT_USER.name);
-        
-        document.getElementById('userBadge').innerText = `${CURRENT_USER.name}`;
-        document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
-        document.getElementById('authBtn').onclick = logout;
-        
-        closeLoginModal();
-        updateRoleUI();
-        renderPendingTable();
-        renderJobsTable();
-        renderSummaryJobs();
-        showToast('เข้าสู่ระบบสำเร็จ');
-      } else {
-        showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
+      showToast('กำลังตรวจสอบรหัสผ่าน...', 'info');
+
+      try {
+        const res = await callServer('checkLogin', { role: role, password: pass });
+        if (res && res.success) {
+          CURRENT_USER = res;
+          
+          localStorage.setItem('MACHINE_APP_ROLE', CURRENT_USER.role);
+          localStorage.setItem('MACHINE_APP_NAME', CURRENT_USER.name);
+          
+          document.getElementById('userBadge').innerText = `${CURRENT_USER.name}`;
+          document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
+          document.getElementById('authBtn').onclick = logout;
+          
+          closeLoginModal();
+          updateRoleUI();
+          renderPendingTable();
+          renderJobsTable();
+          showToast('เข้าสู่ระบบสำเร็จ');
+        } else {
+          showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
+        }
+      } catch(e) {
+        showToast('เกิดข้อผิดพลาดในการล็อกอิน', 'error');
       }
     }
 
@@ -603,9 +582,11 @@
     function renderVillagesDropdown() {
       const sel = document.getElementById('villageNo');
       sel.innerHTML = '<option value="">-- เลือกหมู่ที่ --</option>';
-      GLOBAL_DATA.villages.forEach(v => {
-        sel.innerHTML += `<option value="${v.no}">${v.display}</option>`;
-      });
+      if (GLOBAL_DATA.villages) {
+        GLOBAL_DATA.villages.forEach(v => {
+          sel.innerHTML += `<option value="${v.no}">${v.display}</option>`;
+        });
+      }
     }
 
     function autoFillVillageName() {
@@ -639,7 +620,7 @@
     }
 
     function updateNotificationWidget() {
-      const pCount = GLOBAL_DATA.pendingRequests.length;
+      const pCount = GLOBAL_DATA.pendingRequests ? GLOBAL_DATA.pendingRequests.length : 0;
       document.getElementById('widgetCount').innerText = pCount;
       document.getElementById('pendingBadgeTab').innerText = pCount;
 
@@ -795,7 +776,7 @@
       const container = document.getElementById('pendingRequestsContainer');
       container.innerHTML = '';
 
-      if (GLOBAL_DATA.pendingRequests.length === 0) {
+      if (!GLOBAL_DATA.pendingRequests || GLOBAL_DATA.pendingRequests.length === 0) {
         container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 font-semibold border border-slate-200/80 text-sm"><i class="fa-solid fa-circle-check text-emerald-500 text-3xl mb-2 block"></i> ไม่มีคำขอค้างรอการอนุมัติในขณะนี้</div>`;
         return;
       }
@@ -831,7 +812,7 @@
       const container = document.getElementById('jobsTableContainer');
       container.innerHTML = '';
 
-      if (GLOBAL_DATA.approvedJobs.length === 0) {
+      if (!GLOBAL_DATA.approvedJobs || GLOBAL_DATA.approvedJobs.length === 0) {
         container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 font-semibold border border-slate-200/80 text-sm">ยังไม่มีแผนงานที่ได้รับการอนุมัติ</div>`;
         return;
       }
@@ -903,19 +884,21 @@
       mContainer.innerHTML = '';
       const selectedMachines = selectedStr ? selectedStr.split(', ') : [];
       
-      GLOBAL_DATA.machines.forEach((m) => {
-        const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
-        const mKey = `${prefix}_pm_${m.rowIndex}`;
+      if (GLOBAL_DATA.machines) {
+        GLOBAL_DATA.machines.forEach((m) => {
+          const isChecked = selectedMachines.includes(m.name) ? 'checked' : '';
+          const mKey = `${prefix}_pm_${m.rowIndex}`;
 
-        mContainer.innerHTML += `
-          <div id="${mKey}_card" class="p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${isChecked ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-400' : 'bg-slate-50 border-slate-200/90'}">
-            <label class="flex items-center space-x-2.5 cursor-pointer">
-              <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="toggleMachineCalcPanel('${mKey}', '${prefix}')" class="rounded text-amber-600 w-4 h-4">
-              <span class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">${m.name}</span>
-            </label>
-          </div>
-        `;
-      });
+          mContainer.innerHTML += `
+            <div id="${mKey}_card" class="p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${isChecked ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-400' : 'bg-slate-50 border-slate-200/90'}">
+              <label class="flex items-center space-x-2.5 cursor-pointer">
+                <input type="checkbox" id="${mKey}_chk" name="${prefix}_chkMachine" value="${m.name}" ${isChecked} onchange="recalculatePerMachineFuel('${prefix}')" class="rounded text-amber-600 w-4 h-4">
+                <span class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">${m.name}</span>
+              </label>
+            </div>
+          `;
+        });
+      }
     }
 
     function renderOperatorCheckboxes(containerId, prefix, selectedStr) {
@@ -923,19 +906,17 @@
       oContainer.innerHTML = '';
       const selectedOperators = selectedStr ? selectedStr.split(', ') : [];
 
-      GLOBAL_DATA.operators.forEach(o => {
-        const isChecked = selectedOperators.includes(o.name) ? 'checked' : '';
-        oContainer.innerHTML += `
-          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded">
-            <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-blue-600">
-            <span class="text-xs"><b>${o.name}</b> <span class="text-slate-500">(${o.position || 'ช่างผู้ขับ'})</span></span>
-          </label>
-        `;
-      });
-    }
-
-    function toggleMachineCalcPanel(mKey, prefix) {
-      recalculatePerMachineFuel(prefix);
+      if (GLOBAL_DATA.operators) {
+        GLOBAL_DATA.operators.forEach(o => {
+          const isChecked = selectedOperators.includes(o.name) ? 'checked' : '';
+          oContainer.innerHTML += `
+            <label class="flex items-center space-x-2 border-b border-slate-100 pb-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded">
+              <input type="checkbox" name="${prefix}_chkOperator" value="${o.name}" ${isChecked} class="rounded text-blue-600">
+              <span class="text-xs"><b>${o.name}</b> <span class="text-slate-500">(${o.position || 'ช่างผู้ขับ'})</span></span>
+            </label>
+          `;
+        });
+      }
     }
 
     function recalculatePerMachineFuel(prefix = 'modal') {
@@ -948,14 +929,16 @@
 
       let grandTotalFuelLiters = 0;
 
-      GLOBAL_DATA.machines.forEach(m => {
-        const mKey = `${prefix}_pm_${m.rowIndex}`;
-        const chk = document.getElementById(`${mKey}_chk`);
-        
-        if (chk && chk.checked) {
-          grandTotalFuelLiters += diffDays * (m.fuelRate || 0);
-        }
-      });
+      if (GLOBAL_DATA.machines) {
+        GLOBAL_DATA.machines.forEach(m => {
+          const mKey = `${prefix}_pm_${m.rowIndex}`;
+          const chk = document.getElementById(`${mKey}_chk`);
+          
+          if (chk && chk.checked) {
+            grandTotalFuelLiters += diffDays * (m.fuelRate || 0);
+          }
+        });
+      }
 
       document.getElementById('modalPlanFuel').value = grandTotalFuelLiters.toFixed(2);
       document.getElementById('modalPlanFuelAmount').value = (grandTotalFuelLiters * oilPrice).toFixed(2);
@@ -995,27 +978,16 @@
       }
     }
 
-    function renderSummaryJobs() {
-      const container = document.getElementById('summaryJobsContainer');
-      container.innerHTML = '';
-
-      if (GLOBAL_DATA.finishedEasyPassJobs.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 font-semibold border border-slate-200/80 rounded-2xl text-sm">ไม่มีรายการงานที่เสร็จสิ้นค้างส่งตัดเงิน</div>`;
-        return;
-      }
-    }
-
-    function filterEasyPassTable() {
-      const q = document.getElementById('searchEasyPass').value.toLowerCase();
-      document.querySelectorAll('#summaryJobsContainer .easypass-card-row').forEach(row => {
-        const text = row.getAttribute('data-search').toLowerCase();
-        if (text.includes(q)) row.classList.remove('hidden'); else row.classList.add('hidden');
-      });
-    }
-
     function renderAnalyticsDashboard() {
-      const allJobs = [...GLOBAL_DATA.approvedJobs, ...GLOBAL_DATA.pendingRequests];
-      document.getElementById('dashTotalJobs').innerText = allJobs.length;
+      const approvedCount = GLOBAL_DATA.approvedJobs ? GLOBAL_DATA.approvedJobs.length : 0;
+      const pendingCount = GLOBAL_DATA.pendingRequests ? GLOBAL_DATA.pendingRequests.length : 0;
+      document.getElementById('dashTotalJobs').innerText = approvedCount + pendingCount;
+      
+      let totalFuel = 0;
+      if (GLOBAL_DATA.approvedJobs) {
+        GLOBAL_DATA.approvedJobs.forEach(j => totalFuel += (j.planFuelLiters || 0));
+      }
+      document.getElementById('dashTotalFuel').innerText = totalFuel.toLocaleString() + ' ลิตร';
     }
   </script>
 </body>
