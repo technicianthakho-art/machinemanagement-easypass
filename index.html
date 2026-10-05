@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ระบบบริหารจัดการเครื่องจักรกล & Easy Pass</title>
+  <title>ระบบบริหารจัดการเครื่องจักรกล & Easy Pass - อบต.ท่าก๊อ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -322,6 +322,20 @@
       </div>
 
       <form id="requestForm" onsubmit="handleRequestSubmit(event)" class="space-y-3 text-xs sm:text-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">เลขรับที่คำร้อง</label>
+            <input type="text" id="reqDocNo" placeholder="เช่น 28/2569" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ลงวันที่คำร้อง</label>
+            <input type="date" id="reqDocDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">เรื่องคำร้อง *</label>
+          <input type="text" id="reqSubject" required value="ขอสนับสนุนเครื่องจักรกลเพื่อเข้าปฏิบัติงานในพื้นที่" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500 font-bold">
+        </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">ชื่อ-นามสกุล ผู้ยื่นคำขอ *</label>
           <input type="text" id="requesterName" required placeholder="เช่น นายสมชาย ใจดี" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
@@ -377,8 +391,8 @@
         <div>
           <label class="block font-bold text-slate-700 mb-1">ประเภทสิทธิ์ผู้ใช้งาน</label>
           <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900" onkeyup="if(event.key==='Enter') performLogin()">
-            <option value="SUPER_ADMIN">ผู้ดูแลระบบสูงสุด (Super Admin)</option>
-            <option value="DATA_ENTRY">ผู้บันทึกคำขอและอัปเดต</option>
+            <option value="SUPER_ADMIN">นายศราวุธ ฟ้าแลบ (Super Admin)</option>
+            <option value="DATA_ENTRY">เจ้าหน้าที่บันทึกคำขอและอัปเดต</option>
           </select>
         </div>
         <div>
@@ -485,7 +499,6 @@
               </div>
             </div>
 
-            <!-- 🔥 NEW: แนบรูปภาพหลักฐานราคาน้ำมันประกอบ PDF -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
               <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-paperclip text-rose-600 mr-1"></i> แนบภาพหลักฐานราคาน้ำมัน/สภาพงาน (เลือกหลายรูปได้)</label>
               <input type="file" id="modalAttachmentFiles" multiple accept="image/*" class="w-full text-xs text-slate-600 border border-slate-300 rounded-xl p-1.5 bg-white">
@@ -800,7 +813,7 @@
 
   <!-- CLIENT SCRIPT -->
   <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
     let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
@@ -878,14 +891,13 @@
       return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     }
 
-    // 🔥 FIX: ป้องกันการบวกปี 543 ซ้ำซ้อน (2569 -> 3112)
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
       const parts = String(dateStr).split('-');
       if (parts.length !== 3) return dateStr;
 
       let year = parseInt(parts[0], 10);
-      if (year < 2400) year += 543; // บวก 543 เฉพาะเมื่อเป็นปี ค.ศ.
+      if (year < 2400) year += 543;
 
       const monthIndex = parseInt(parts[1], 10) - 1;
       const day = parseInt(parts[2], 10);
@@ -925,8 +937,21 @@
     }
 
     window.onload = function() {
+      restoreUserSession();
       loadData();
     };
+
+    function restoreUserSession() {
+      const savedRole = localStorage.getItem('MACHINE_APP_ROLE');
+      const savedName = localStorage.getItem('MACHINE_APP_NAME');
+
+      if (savedRole && savedName) {
+        CURRENT_USER = { role: savedRole, name: savedName };
+        document.getElementById('userBadge').innerText = `${CURRENT_USER.name}`;
+        document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
+        document.getElementById('authBtn').onclick = logout;
+      }
+    }
 
     async function loadData() {
       try {
@@ -1007,7 +1032,9 @@
       const res = await callGAS('checkLogin', { role: role, password: pass });
       if (res && res.success) {
         CURRENT_USER = res;
-        if (role === 'DATA_ENTRY') CURRENT_USER.name = 'ผู้บันทึกคำขอและอัปเดต';
+        
+        localStorage.setItem('MACHINE_APP_ROLE', CURRENT_USER.role);
+        localStorage.setItem('MACHINE_APP_NAME', CURRENT_USER.name);
         
         document.getElementById('userBadge').innerText = `${CURRENT_USER.name}`;
         document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
@@ -1025,6 +1052,9 @@
     }
 
     function logout() {
+      localStorage.removeItem('MACHINE_APP_ROLE');
+      localStorage.removeItem('MACHINE_APP_NAME');
+
       CURRENT_USER = { role: 'GUEST', name: 'Guest' };
       document.getElementById('userBadge').innerText = 'Guest';
       document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ`;
@@ -1054,6 +1084,9 @@
     async function handleRequestSubmit(e) {
       e.preventDefault();
       const payload = {
+        docNo: document.getElementById('reqDocNo').value,
+        docDate: document.getElementById('reqDocDate').value,
+        subject: document.getElementById('reqSubject').value,
         requesterName: document.getElementById('requesterName').value,
         requesterPosition: document.getElementById('requesterPosition').value,
         villageNo: document.getElementById('villageNo').value,
@@ -1108,6 +1141,8 @@
             <span class="font-black text-slate-900 text-base">${job.requestId}</span>
             <span class="bg-indigo-100 text-indigo-800 font-extrabold px-3 py-1 rounded-full text-xs">${job.approvalStatus}</span>
           </div>
+          <div><b class="text-slate-500">เรื่องคำร้อง:</b> <span class="font-bold text-slate-900">${job.subject || '-'}</span></div>
+          <div><b class="text-slate-500">เลขที่รับคำร้อง:</b> ${job.docNo || '-'} (ลงวันที่: ${formatThaiDate(job.docDate) || '-'})</div>
           <div><b class="text-slate-500">สถานที่ปฏิบัติงาน:</b> <span class="font-bold text-slate-900">หมู่ที่ ${job.villageNo} ${job.villageName}</span></div>
           <div><b class="text-slate-500">ผู้ยื่นคำขอ:</b> <span class="font-bold text-slate-900">${job.requesterName} (${job.requesterPosition})</span></div>
           <div><b class="text-slate-500">วันที่ยื่นระบบ:</b> ${formatThaiDate(job.requestDate)}</div>
@@ -1168,7 +1203,6 @@
       }
     }
 
-    // 🔥 NEW: ฟังก์ชันออกเอกสาร PDF เสนออนุมัติ 3+ หน้าพร้อมรูปแนบ
     async function exportProposalPDF() {
       const rowIndex = parseInt(document.getElementById('modalRowIndex').value);
       let job = GLOBAL_DATA.pendingRequests.find(j => j.rowIndex === rowIndex);
@@ -1183,10 +1217,15 @@
 
       const jobData = {
         requestId: job.requestId,
+        docNo: job.docNo || job.requestId,
+        docDate: job.docDate || job.requestDate,
+        subject: job.subject || 'ขอสนับสนุนเครื่องจักรกลเพื่อเข้าปฏิบัติงานในพื้นที่',
         requesterName: job.requesterName,
         requesterPosition: job.requesterPosition,
         villageNo: job.villageNo,
         villageName: job.villageName,
+        reqStartDate: job.reqStartDate,
+        reqEndDate: job.reqEndDate,
         planStartDate: document.getElementById('modalPlanStartDate').value,
         planEndDate: document.getElementById('modalPlanEndDate').value,
         planDays: parseInt(document.getElementById('modalPlanDays').value) || 0,
@@ -1199,7 +1238,7 @@
       };
 
       const fileInput = document.getElementById('modalAttachmentFiles');
-      showToast('กำลังประมวลผลและสร้างเอกสาร PDF เสนออนุมัติ (3+ หน้า)...', 'info');
+      showToast('กำลังประมวลผลและสร้างเอกสาร PDF เสนออนุมัติทางราชการ (3+ หน้า)...', 'info');
 
       const attachmentImages = [];
       
@@ -1257,6 +1296,7 @@
             </div>
             <div class="text-xs sm:text-sm text-slate-700 flex justify-between flex-wrap gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
               <span><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
+              <span><b>เรื่อง:</b> ${req.subject || 'ขอสนับสนุนเครื่องจักรกล'}</span>
               <span><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
             </div>
             ${isSuperAdmin ? `
@@ -1911,7 +1951,7 @@
                 <div><b>ยี่ห้อ:</b> ${m.brand || '-'} | <b>ทะเบียน:</b> ${m.plate || '-'}</div>
                 <div><b>ครุภัณฑ์:</b> ${m.assetNo || '-'}</div>
                 <div><b>เกณฑ์สิ้นเปลือง:</b> <span class="font-bold text-amber-700">${rateDetail}</span></div>
-                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-800">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}: ${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
+                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-808">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}: ${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
                 <div><b>อุปกรณ์เสริม:</b> <span class="text-slate-500">${m.equipment || 'ไม่มี'}</span></div>
               </div>
             </div>
