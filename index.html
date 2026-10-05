@@ -422,7 +422,7 @@
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
         <button onclick="exportJobPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
-          <i class="fa-solid fa-file-pdf text-base"></i> พิมพ์ใบรายงานผล PDF
+          <i class="fa-solid fa-file-pdf text-base"></i> พิมพ์ใบรายงานผล PDF (3+ หน้า)
         </button>
         <button onclick="closeDetailsModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs font-bold">ปิดหน้าต่าง</button>
       </div>
@@ -450,6 +450,18 @@
               <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
               
               <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">เลขรับที่คำร้อง</label>
+                  <input type="text" id="modalDocNo" placeholder="เช่น 28/2569" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">ลงวันที่คำร้อง</label>
+                  <input type="date" id="modalDocDate" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">เรื่องคำร้อง</label>
+                  <input type="text" id="modalSubject" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
                   <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
@@ -813,7 +825,7 @@
 
   <!-- CLIENT SCRIPT -->
   <script>
-    // Web App URL จาก Google Apps Script
+    // Web App URL จาก Google Apps Script (ยิงตรงลิงก์ล่าสุดของคุณบอย)
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
@@ -1165,7 +1177,7 @@
 
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs sm:text-sm">
           <div class="font-extrabold text-slate-900 border-b border-slate-200 pb-2 text-sm">รายละเอียดแผนงานและการอนุมัติ</div>
-          <div><b class="text-slate-500">ผู้อนุมัติ:</b> ${job.approvedBy || '-'}</div>
+          <div><b class="text-slate-500">ผู้อนุมัติ:</b> นายศราวุธ ฟ้าแลบ (นายช่างโยธาชำนาญงาน)</div>
           <div><b class="text-slate-500">ช่วงวันตามแผนงาน:</b> ${formatThaiDate(job.planStartDate)} ถึง ${formatThaiDate(job.planEndDate)} (${job.planDays || 0} วัน)</div>
           <div><b class="text-slate-500">เครื่องจักรกลที่จัดสรร:</b> ${job.assignedMachine || '-'}</div>
           <div><b class="text-slate-500">ช่างผู้ปฏิบัติงาน:</b> ${job.assignedOperator || '-'}</div>
@@ -1199,10 +1211,13 @@
 
     async function exportJobPDF() {
       if (!CURRENT_SELECTED_REQUEST_ID) return;
-      showToast('กำลังเจนเนอเรตเอกสาร PDF...', 'info');
+      showToast('กำลังเจนเนอเรตรายงาน PDF 3+ หน้า...', 'info');
 
       try {
-        const res = await callGAS('generateOfficialPDF', { requestId: CURRENT_SELECTED_REQUEST_ID });
+        let job = GLOBAL_DATA.approvedJobs.find(j => j.requestId === CURRENT_SELECTED_REQUEST_ID);
+        if (!job) job = GLOBAL_DATA.pendingRequests.find(j => j.requestId === CURRENT_SELECTED_REQUEST_ID);
+        
+        const res = await callGAS('generateProposalPDF', { job: job, attachmentImages: [] });
         if (res && res.pdfDataUrl) {
           const downloadLink = document.createElement("a");
           downloadLink.href = res.pdfDataUrl;
@@ -1210,14 +1225,13 @@
           document.body.appendChild(downloadLink);
           downloadLink.click();
           document.body.removeChild(downloadLink);
-          showToast('ดาวน์โหลดเอกสาร PDF เรียบร้อยแล้ว');
+          showToast('ดาวน์โหลดรายงาน PDF เรียบร้อยแล้ว');
         }
       } catch (err) {
         showToast('เกิดข้อผิดพลาดในการสร้าง PDF', 'error');
       }
     }
 
-    // ฟังก์ชันบีบีช่วยบีบอัดภาพก่อนส่งป้องกัน Payload Limit
     function compressImageFile(file, maxWidth = 1000, quality = 0.7) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -1262,11 +1276,15 @@
       const selOperators = [];
       document.querySelectorAll('input[name="modal_chkOperator"]:checked').forEach(c => selOperators.push(c.value));
 
+      const docNoVal = document.getElementById('modalDocNo').value || job.docNo || job.requestId;
+      const docDateVal = document.getElementById('modalDocDate').value || job.docDate || job.requestDate;
+      const subjectVal = document.getElementById('modalSubject').value || job.subject || 'ขอสนับสนุนเครื่องจักรกลเพื่อเข้าปฏิบัติงานในพื้นที่';
+
       const jobData = {
         requestId: job.requestId,
-        docNo: job.docNo || job.requestId,
-        docDate: job.docDate || job.requestDate,
-        subject: job.subject || 'ขอสนับสนุนเครื่องจักรกลเพื่อเข้าปฏิบัติงานในพื้นที่',
+        docNo: docNoVal,
+        docDate: docDateVal,
+        subject: subjectVal,
         requesterName: job.requesterName,
         requesterPosition: job.requesterPosition,
         villageNo: job.villageNo,
@@ -1281,11 +1299,11 @@
         planFuelLiters: parseFloat(document.getElementById('modalPlanFuel').value) || 0,
         planOilPrice: parseFloat(document.getElementById('modalPlanOilPrice').value) || 0,
         planFuelAmount: parseFloat(document.getElementById('modalPlanFuelAmount').value) || 0,
-        approvedBy: CURRENT_USER.name
+        approvedBy: 'นายศราวุธ ฟ้าแลบ'
       };
 
       const fileInput = document.getElementById('modalAttachmentFiles');
-      showToast('กำลังประมวลผลบีบอัดรูปภาพและสร้าง PDF เสนออนุมัติทางราชการ...', 'info');
+      showToast('กำลังประมวลผลบีบอัดรูปภาพและสร้าง PDF บันทึกเสนออนุมัติ 3+ หน้า...', 'info');
 
       const attachmentImages = [];
       
@@ -1440,6 +1458,10 @@
       if (!job) return;
 
       document.getElementById('modalRowIndex').value = rowIndex;
+      document.getElementById('modalDocNo').value = job.docNo || job.requestId || '';
+      document.getElementById('modalDocDate').value = job.docDate || job.requestDate || '';
+      document.getElementById('modalSubject').value = job.subject || 'ขอสนับสนุนเครื่องจักรกลเพื่อเข้าปฏิบัติงานในพื้นที่';
+
       document.getElementById('modalApprovalStatus').value = 'Accepted';
       document.getElementById('modalApprovalRemark').value = job.approvalRemark || '';
       document.getElementById('modalPlanStartDate').value = job.planStartDate || job.reqStartDate || '';
@@ -1594,6 +1616,9 @@
 
       const payload = {
         rowIndex: parseInt(document.getElementById('modalRowIndex').value),
+        docNo: document.getElementById('modalDocNo').value,
+        docDate: document.getElementById('modalDocDate').value,
+        subject: document.getElementById('modalSubject').value,
         approvalStatus: document.getElementById('modalApprovalStatus').value,
         approvalRemark: document.getElementById('modalApprovalRemark').value,
         planStartDate: document.getElementById('modalPlanStartDate').value,
@@ -1603,7 +1628,7 @@
         assignedOperator: selOperators.join(', '),
         planFuelLiters: parseFloat(document.getElementById('modalPlanFuel').value) || 0,
         planOilPrice: parseFloat(document.getElementById('modalPlanOilPrice').value) || 0,
-        approvedBy: CURRENT_USER.name
+        approvedBy: 'นายศราวุธ ฟ้าแลบ'
       };
 
       const res = await callGAS('updateJobApprovalAndPlan', payload);
@@ -1708,7 +1733,7 @@
         rowIndex: rowIndex,
         approvalStatus: 'Rejected',
         approvalRemark: reason,
-        approvedBy: CURRENT_USER.name
+        approvedBy: 'นายศราวุธ ฟ้าแลบ'
       };
 
       const res = await callGAS('updateJobApprovalAndPlan', payload);
