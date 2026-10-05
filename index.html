@@ -813,7 +813,8 @@
 
   <!-- CLIENT SCRIPT -->
   <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
+    // Web App URL จาก Google Apps Script (ปรับแก้ไขตรงตาม Deployment ล่าสุดเรียบร้อย)
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
     let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
@@ -824,8 +825,8 @@
     async function callGAS(action, payload = {}) {
       try {
         if (!GAS_API_URL || GAS_API_URL.trim() === '') {
-          showToast('กรุณาระบุ GAS_API_URL ในไฟล์ index.html ให้ถูกต้อง', 'error');
-          return;
+          showToast('กรุณาระบุ GAS_API_URL ในไฟล์ Index.html ให้ถูกต้อง', 'error');
+          return null;
         }
 
         const response = await fetch(GAS_API_URL, {
@@ -834,10 +835,23 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: action, payload: payload })
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP Error Status: ${response.status}`);
+        }
+
         return await response.json();
       } catch (error) {
-        console.error('GAS API Error:', error);
-        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบเซิร์ฟเวอร์', 'error');
+        console.error('GAS API Connection Error Details:', error);
+        
+        let errMessage = 'เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบเซิร์ฟเวอร์';
+        if (error.message && error.message.includes('Failed to fetch')) {
+          errMessage = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (กรุณาเช็กสิทธิ์ Anyone บน GAS Deployment)';
+        } else if (error.message) {
+          errMessage = `ข้อผิดพลาดเซิร์ฟเวอร์: ${error.message}`;
+        }
+        
+        showToast(errMessage, 'error');
         throw error;
       }
     }
@@ -1302,7 +1316,7 @@
             ${isSuperAdmin ? `
               <div class="pt-1 text-right flex justify-end space-x-2" onclick="event.stopPropagation()">
                 <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition">
-                  <i class="fa-solid fa-xmark mr-1"></i> ปฏิเสธ
+                  <i class="fa-solid fa-xmark mr-1"></i> ปปฏิเสธ
                 </button>
                 <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded-xl font-bold shadow-sm transition">
                   <i class="fa-solid fa-check mr-1"></i> อนุมัติ & จัดแผน
