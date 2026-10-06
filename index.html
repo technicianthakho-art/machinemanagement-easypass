@@ -436,12 +436,16 @@
               <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
               
               <div class="grid grid-cols-2 gap-2.5">
-                <div class="col-span-2">
+                <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
                   <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
                     <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
                     <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
                   </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
+                  <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
@@ -492,18 +496,9 @@
 
         </div>
 
-        <!-- FOOTER BAR: เพิ่ม Textarea หมายเหตุ / รายละเอียดงาน ที่มุมล่างซ้าย -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
-          <div class="w-full md:w-2/3">
-            <label class="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-              <i class="fa-solid fa-comment-dots text-indigo-600"></i> หมายเหตุ / รายละเอียดงาน (บันทึกเข้าระบบ & PDF)
-            </label>
-            <textarea id="modalApprovalRemark" rows="2" placeholder="เช่น ซ่อมแซมถนนการเกษตร, ขุดลอกลำห้วย..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition"></textarea>
-          </div>
-          <div class="flex items-center justify-end space-x-2 w-full md:w-1/3 self-end">
-            <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-            <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
-          </div>
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+          <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
         </div>
       </div>
     </div>
@@ -523,12 +518,6 @@
       
       <div class="p-6 space-y-4 pt-1">
         <input type="hidden" id="actRowIndex">
-
-        <!-- ดิสเพลย์หมายเหตุแผนงานแบบ Read-only ใน Modal อัปเดตผลงาน -->
-        <div id="actApprovalRemarkBox" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 flex items-start gap-2">
-          <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
-          <div><b class="text-slate-900">รายละเอียดแผนงาน / หมายเหตุ:</b> <span id="actApprovalRemarkText" class="font-bold text-indigo-950">-</span></div>
-        </div>
 
         <div class="space-y-3">
           <div>
@@ -876,6 +865,9 @@
       });
     }
 
+    /**
+     * 🛠️ Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
+     */
     function parseToADDate(dateStr) {
       if (!dateStr) return null;
       if (dateStr instanceof Date) return dateStr;
@@ -890,7 +882,7 @@
 
         if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-        if (year > 2400) year -= 543;
+        if (year > 2400) year -= 543; // หากเป็นปี พ.ศ. ให้แปลงกลับเป็น ค.ศ.
         return new Date(year, month, day);
       }
 
@@ -898,6 +890,9 @@
       return isNaN(d.getTime()) ? null : d;
     }
 
+    /**
+     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
+     */
     function calculateDaysBetween(startDateStr, endDateStr) {
       if (!startDateStr || !endDateStr) return 0;
       
@@ -910,6 +905,9 @@
       return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     }
 
+    /**
+     * 🛠️ [จุดปรับแก้] แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
+     */
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
       const d = parseToADDate(dateStr);
@@ -1148,7 +1146,6 @@
           <div><b class="text-slate-500">ช่วงวันตามแผนงาน:</b> ${formatThaiDate(job.planStartDate)} ถึง ${formatThaiDate(job.planEndDate)} (${job.planDays || 0} วัน)</div>
           <div><b class="text-slate-500">เครื่องจักรกลที่จัดสรร:</b> ${job.assignedMachine || '-'}</div>
           <div><b class="text-slate-500">ช่างผู้ปฏิบัติงาน:</b> ${job.assignedOperator || '-'}</div>
-          <div><b class="text-slate-500">หมายเหตุ/รายละเอียดงาน:</b> <span class="font-bold text-indigo-900">${job.approvalRemark || 'ไม่ได้ระบุ'}</span></div>
           <div><b class="text-slate-500">น้ำมันประเมิน:</b> ${job.planFuelLiters || 0} ลิตร (ราคาน้ำมัน ณ วันจัดแผน: ${job.planOilPrice || '-'} บาท/ลิตร)</div>
         </div>
 
@@ -1197,12 +1194,6 @@
       }
     }
 
-    /* =========================================================================
-       1. ปรับปรุงการ์ดคำขอรอพิจารณาอนุมัติ (Compact Pending Request Card)
-       - ยุบเป็นบรรทัดเดียว (Single/Compact Row)
-       - วันที่ขอใช้ต่อท้ายชื่อผู้ยื่น
-       - ย้ายปุ่ม Action มาไว้ฝั่งขวา
-       ========================================================================= */
     function renderPendingTable() {
       const container = document.getElementById('pendingRequestsContainer');
       container.innerHTML = '';
@@ -1216,29 +1207,23 @@
         const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-3.5 rounded-2xl shadow-sm cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3 transition">
-            <div class="flex items-center space-x-3 flex-grow w-full md:w-auto overflow-hidden">
-              <span class="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0">รออนุมัติ</span>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs sm:text-sm flex-grow items-center border-l border-slate-100 pl-3">
-                <div class="truncate">
-                  <span class="font-extrabold text-slate-900 hover:underline text-sm sm:text-base block truncate">
-                    <i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i>${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
-                  </span>
-                  <span class="text-slate-600 font-semibold text-xs truncate block">
-                    <b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})
-                  </span>
-                </div>
-                <div class="text-slate-500 text-xs font-bold truncate">
-                  <i class="fa-solid fa-calendar-days text-amber-500 mr-1"></i>ขอใช้: ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}
-                </div>
-              </div>
+          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
+                <i class="fa-solid fa-circle-info text-amber-500 mr-2"></i> ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
+              </span>
+              <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">รออนุมัติ</span>
+            </div>
+            <div class="text-xs sm:text-sm text-slate-700 flex justify-between flex-wrap gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
+              <span><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
             </div>
             ${isSuperAdmin ? `
-              <div class="flex items-center space-x-2 flex-shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 border-slate-100 pt-2 md:pt-0" onclick="event.stopPropagation()">
-                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow-sm transition active:scale-95">
+              <div class="pt-1 text-right flex justify-end space-x-2" onclick="event.stopPropagation()">
+                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition">
                   <i class="fa-solid fa-xmark mr-1"></i> ปฏิเสธ
                 </button>
-                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-xl font-bold shadow-sm transition active:scale-95">
+                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded-xl font-bold shadow-sm transition">
                   <i class="fa-solid fa-check mr-1"></i> อนุมัติ & จัดแผน
                 </button>
               </div>
@@ -1274,7 +1259,7 @@
         const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect job-card-row bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm transition cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.assignedOperator} ${job.assignedMachine} ${job.approvalRemark}">
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect job-card-row bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm transition cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.assignedOperator} ${job.assignedMachine}">
             <div class="flex items-center space-x-3.5 flex-grow w-full md:w-auto overflow-hidden">
               <div class="flex-shrink-0">${statusBadge}</div>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm flex-grow items-center border-l border-slate-100 pl-4">
@@ -1283,7 +1268,6 @@
                     <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i>${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
                   </span>
                   <div class="text-xs text-slate-500 truncate"><span class="font-semibold text-slate-400">ผู้ยื่น:</span> ${job.requesterName}</div>
-                  ${job.approvalRemark ? `<div class="text-[11px] text-indigo-600 font-bold truncate mt-0.5"><i class="fa-solid fa-comment-dots mr-1"></i>${job.approvalRemark}</div>` : ''}
                 </div>
                 <div class="truncate">
                   <span class="text-[11px] text-slate-400 block font-semibold leading-none mb-1">ช่วงแผนงาน</span>
@@ -1329,9 +1313,6 @@
       });
     }
 
-    /* =========================================================================
-       2. ดึงข้อมูลและเซ็ตค่า Modal PlanModal (เปิดเพื่อจัดแผน)
-       ========================================================================= */
     function openPlanModal(rowIndex) {
       let job = GLOBAL_DATA.pendingRequests.find(j => j.rowIndex === rowIndex);
       if (!job) job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
@@ -1482,9 +1463,6 @@
 
     function closePlanModal() { document.getElementById('planModal').classList.add('hidden'); }
 
-    /* =========================================================================
-       3. บันทึกข้อมูลการจัดแผนงาน ( saveJobPlan ) รวบรวมหมายเหตุไป Backend
-       ========================================================================= */
     async function saveJobPlan() {
       const selMachines = [];
       document.querySelectorAll('input[name="modal_chkMachine"]:checked').forEach(c => selMachines.push(c.value));
@@ -1495,7 +1473,7 @@
       const payload = {
         rowIndex: parseInt(document.getElementById('modalRowIndex').value),
         approvalStatus: document.getElementById('modalApprovalStatus').value,
-        approvalRemark: document.getElementById('modalApprovalRemark').value, // รวบรวมส่ง Backend
+        approvalRemark: document.getElementById('modalApprovalRemark').value,
         planStartDate: document.getElementById('modalPlanStartDate').value,
         planEndDate: document.getElementById('modalPlanEndDate').value,
         planDays: parseInt(document.getElementById('modalPlanDays').value) || 0,
@@ -1523,9 +1501,6 @@
       }
     }
 
-    /* =========================================================================
-       4. ดึงหมายเหตุมาแสดงประกอบการอัปเดตงานจริง (openActualModal)
-       ========================================================================= */
     function openActualModal(rowIndex) {
       const job = GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex);
       if (!job) return;
@@ -1533,7 +1508,6 @@
       document.getElementById('actRowIndex').value = rowIndex;
       document.getElementById('actJobStatus').value = job.jobProgressStatus || 'กำลังปฏิบัติงาน';
       document.getElementById('actIssueDetail').value = job.issueDetail || '';
-      document.getElementById('actApprovalRemarkText').innerText = job.approvalRemark || 'ไม่ได้ระบุ';
       
       const startDate = job.actualStartDate || job.planStartDate || '';
       const endDate = job.actualEndDate || job.planEndDate || '';
@@ -1591,4 +1565,717 @@
         actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalEnd').value : '',
         actualDays: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseInt(document.getElementById('actModalDays').value) || 0 : 0,
         actualFuelLiters: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalFuel').value) || 0 : 0,
-        totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 :
+        totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0,
+        assignedMachine: selMachines.join(', '),
+        assignedOperator: selOperators.join(', ')
+      };
+
+      const res = await callGAS('updateJobActualProgress', payload);
+      if (res && res.success) {
+        showToast('อัปเดตการปฏิบัติงานสำเร็จ');
+        closeActualModal();
+        loadData();
+      }
+    }
+
+    async function rejectRequest(rowIndex) {
+      const reason = prompt('ระบุเหตุผลในการปฏิเสธคำขอนี้:');
+      if (reason === null) return;
+
+      const payload = {
+        rowIndex: rowIndex,
+        approvalStatus: 'Rejected',
+        approvalRemark: reason,
+        approvedBy: CURRENT_USER.name
+      };
+
+      const res = await callGAS('updateJobApprovalAndPlan', payload);
+      if (res && res.success) {
+        showToast('ปฏิเสธคำขอเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    function renderEasyPassActionButtons(item) {
+      const isSent = Boolean(item.isEasyPassSent);
+
+      if (!isSent) {
+        return `
+          <button onclick="confirmAndSendEasyPass(${item.rowIndex}, false)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-sm transition flex items-center gap-1">
+            <i class="fa-solid fa-paper-plane"></i> ส่งตัดเงิน Easy Pass
+          </button>
+        `;
+      } else {
+        return `
+          <div class="flex flex-col sm:flex-row items-center gap-1.5">
+            <span class="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1">
+              <i class="fa-solid fa-check-circle"></i> ส่งตัดเงินแล้ว (${item.easyPassTxId || '-'})
+            </span>
+            <button onclick="confirmAndSendEasyPass(${item.rowIndex}, true)" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[11px] shadow-sm transition flex items-center gap-1">
+              <i class="fa-solid fa-rotate-right"></i> ส่งอีกครั้ง
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    async function confirmAndSendEasyPass(rowIndex, isResend) {
+      const jobData = getJobDataByRowIndex(rowIndex);
+
+      const isConfirmed = await showCustomConfirm(jobData, isResend);
+      if (!isConfirmed) return;
+
+      showToast('กำลังส่งคำร้อง Easy Pass ไปยังแอปบริหารงบประมาณ...', 'info');
+
+      try {
+        const res = await callGAS('sendToEasyPassIntegration', { jobData: jobData, isResend: isResend });
+        if (res && res.success) {
+          showToast(res.isResend ? 'ส่งคำร้องซ้ำไปยังแอปงบประมาณเรียบร้อยแล้ว' : 'ส่งคำร้องตัดเงินเรียบร้อยแล้ว');
+          loadData();
+        }
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาดในการส่ง Easy Pass: ' + err.message, 'error');
+      }
+    }
+
+    function renderSummaryJobs() {
+      const container = document.getElementById('summaryJobsContainer');
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.finishedEasyPassJobs.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 font-semibold border border-slate-200/80 rounded-2xl text-sm">ไม่มีรายการงานที่เสร็จสิ้นค้างส่งตัดเงิน</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.finishedEasyPassJobs.forEach(job => {
+        const canAction = CURRENT_USER.role === 'SUPER_ADMIN';
+
+        container.innerHTML += `
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect easypass-card-row bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer transition ${job.isEasyPassSent ? 'bg-emerald-50/30 border-emerald-300' : 'bg-white border-amber-300'}" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.easyPassTxId}">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
+                <i class="fa-solid fa-circle-info text-emerald-600 mr-2"></i> ${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
+              </span>
+              ${job.isEasyPassSent ? `<span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm"><i class="fa-solid fa-check-circle mr-1"></i> ตัดเงินแล้ว (TX: ${job.easyPassTxId})</span>` : '<span class="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm"><i class="fa-solid fa-clock mr-1"></i> พร้อมส่งตัดเงิน Easy Pass</span>'}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div><span class="font-semibold text-slate-400 block text-xs">ผู้ยื่นคำขอ</span> <b>${job.requesterName}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">เครื่องจักร/รถ</span> <b class="text-amber-700">${job.assignedMachine || '-'}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">ช่างผู้ปฏิบัติงาน</span> <b class="text-blue-700">${job.assignedOperator || '-'}</b></div>
+              <div><span class="font-semibold text-slate-400 block text-xs">ช่วงวันปฏิบัติงานจริง</span> <b>${formatThaiDate(job.actualStartDate)} ถึง ${formatThaiDate(job.actualEndDate)}</b></div>
+            </div>
+
+            <div class="flex justify-between items-center flex-wrap gap-2 pt-1">
+              <div class="text-xs sm:text-sm text-slate-700">
+                <span>น้ำมันจริง: <b class="text-amber-600">${job.actualFuelLiters || 0} ลิตร</b> (ราคาน้ำมันจัดแผน: ${job.planOilPrice || '-'} บ.)</span> | 
+                <span>ยอดเงินตัดงบ Easy Pass: <b class="text-emerald-700 text-base font-black">${(job.totalAmount || 0).toLocaleString()} บาท</b></span>
+              </div>
+              ${canAction ? `
+                <div onclick="event.stopPropagation()">
+                  ${renderEasyPassActionButtons(job)}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterEasyPassTable() {
+      const q = document.getElementById('searchEasyPass').value.toLowerCase();
+      document.querySelectorAll('#summaryJobsContainer .easypass-card-row').forEach(row => {
+        const text = row.getAttribute('data-search').toLowerCase();
+        if (text.includes(q)) row.classList.remove('hidden'); else row.classList.add('hidden');
+      });
+    }
+
+    function renderAnalyticsDashboard() {
+      const allJobs = [...GLOBAL_DATA.approvedJobs, ...GLOBAL_DATA.pendingRequests];
+      document.getElementById('dashTotalJobs').innerText = allJobs.length;
+
+      let totalFuel = 0;
+      let totalAmount = 0;
+
+      const fuelByMachine = {};
+      const budgetByVillage = {};
+
+      GLOBAL_DATA.finishedEasyPassJobs.forEach(job => {
+        const fuel = parseFloat(job.actualFuelLiters) || parseFloat(job.planFuelLiters) || 0;
+        const amt = parseFloat(job.totalAmount) || 0;
+
+        totalFuel += fuel;
+        totalAmount += amt;
+
+        const mName = job.assignedMachine || 'ไม่ระบุเครื่องจักร';
+        const machinesList = mName.split(', ');
+        machinesList.forEach(m => {
+          fuelByMachine[m] = (fuelByMachine[m] || 0) + (fuel / machinesList.length);
+        });
+
+        const vName = `หมู่ ${job.villageNo} ${job.villageName}`;
+        budgetByVillage[vName] = (budgetByVillage[vName] || 0) + amt;
+      });
+
+      document.getElementById('dashTotalFuel').innerText = `${totalFuel.toLocaleString()} ลิตร`;
+      document.getElementById('dashTotalAmount').innerText = `${totalAmount.toLocaleString()} บาท`;
+
+      const ctxFuel = document.getElementById('fuelByMachineChart').getContext('2d');
+      if (fuelChartInstance) fuelChartInstance.destroy();
+      fuelChartInstance = new Chart(ctxFuel, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(fuelByMachine),
+          datasets: [{
+            label: 'น้ำมันเชื้อเพลิง (ลิตร)',
+            data: Object.values(fuelByMachine),
+            backgroundColor: '#f59e0b',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+
+      const ctxVillage = document.getElementById('budgetByVillageChart').getContext('2d');
+      if (villageChartInstance) villageChartInstance.destroy();
+      villageChartInstance = new Chart(ctxVillage, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(budgetByVillage),
+          datasets: [{
+            label: 'งบ Easy Pass (บาท)',
+            data: Object.values(budgetByVillage),
+            backgroundColor: '#10b981',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+    }
+
+    function toggleAddMachineForm() { 
+      const form = document.getElementById('addMachineForm');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        renderMachineOperatorCheckboxes('newMachineOperatorCheckboxes', []);
+      }
+    }
+    
+    function toggleAddOpForm() { 
+      const form = document.getElementById('addOpForm');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        renderOpMachineCheckboxes('newOpMachineCheckboxes', []);
+      }
+    }
+    
+    function toggleAddVillageForm() { document.getElementById('addVillageForm').classList.toggle('hidden'); }
+
+    function renderMasterLists() {
+      renderMasterMachines();
+      renderMasterOperators();
+      renderMasterVillages();
+    }
+
+    function renderMachineOperatorCheckboxes(containerId, selectedArray) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.operators.length === 0) {
+        container.innerHTML = `<span class="text-slate-400 italic">ไม่มีข้อมูลช่าง/ผู้ขับในระบบ</span>`;
+        return;
+      }
+
+      GLOBAL_DATA.operators.forEach(o => {
+        const isChecked = selectedArray.includes(o.name) ? 'checked' : '';
+        container.innerHTML += `
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1 cursor-pointer hover:bg-slate-100 p-1 rounded">
+            <input type="checkbox" name="${containerId}_chk" value="${o.name}" ${isChecked} class="rounded text-amber-600">
+            <span><b>${o.name}</b> (${o.position || 'พนักงานขับ'})</span>
+          </label>
+        `;
+      });
+    }
+
+    function renderMasterMachines() {
+      const grid = document.getElementById('masterMachineGrid');
+      grid.innerHTML = '';
+
+      if (GLOBAL_DATA.machines.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 border rounded-2xl">ไม่มีข้อมูลเครื่องจักร</div>`;
+        return;
+      }
+
+      GLOBAL_DATA.machines.forEach((m, idx) => {
+        const numStr = String(idx + 1).padStart(2, '0');
+        
+        let statusBg = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (m.status === 'ใช้งานได้ชั่วคราว') statusBg = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (m.status === 'ชำรุด/ส่งซ่อม' || m.status === 'ไม่พร้อมใช้งาน') statusBg = 'bg-rose-100 text-rose-800 border-rose-300';
+
+        const placeholderImg = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=80';
+        const displayImg = m.imgUrl || placeholderImg;
+
+        const rateDetail = `${m.fuelRate || 0} ลิตร/วัน (${m.ratePerHour || 0} ลิตร/ชม.) | เกณฑ์กิโลเมตร: ${m.ratePerKm || 0} ลิตร/กม.`;
+
+        grid.innerHTML += `
+          <div class="card-hover-effect bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col sm:flex-row gap-3 items-start relative">
+            <div class="w-full sm:w-44 flex-shrink-0 relative">
+              <span class="absolute -top-2 -left-2 bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 rounded-full shadow-md z-10">${numStr}</span>
+              <img src="${displayImg}" onerror="this.src='${placeholderImg}'" class="w-full h-32 object-cover rounded-xl border border-slate-100">
+            </div>
+
+            <div class="flex-grow space-y-1.5 w-full text-xs sm:text-sm">
+              <div class="flex justify-between items-start flex-wrap gap-1">
+                <h4 class="font-extrabold text-slate-900 text-base">${m.name}</h4>
+                <div class="flex items-center space-x-1">
+                  <button onclick="openEditMachineModal(${m.rowIndex})" class="text-amber-700 hover:text-amber-900 font-bold text-xs bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition shadow-sm">
+                    <i class="fa-solid fa-pen-to-square mr-0.5"></i> แก้ไข
+                  </button>
+                  <button onclick="delMaster('MACHINE', ${m.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-trash mr-0.5"></i> ลบ
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-2 pt-0.5">
+                <span class="text-slate-500 text-xs font-semibold">สถานะ:</span>
+                <select onchange="quickUpdateMachineStatus(${m.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusBg} transition cursor-pointer">
+                  <option value="ใช้งานได้" ${m.status === 'ใช้งานได้' ? 'selected' : ''}>ใช้งานได้</option>
+                  <option value="ใช้งานได้ชั่วคราว" ${m.status === 'ใช้งานได้ชั่วคราว' ? 'selected' : ''}>ใช้งานได้ชั่วคราว</option>
+                  <option value="ชำรุด/ส่งซ่อม" ${m.status === 'ชำรุด/ส่งซ่อม' ? 'selected' : ''}>ชำรุด / ส่งซ่อม</option>
+                </select>
+              </div>
+
+              <div class="text-slate-600 space-y-0.5 pt-1.5 border-t border-slate-100 text-xs">
+                <div><b>ยี่ห้อ:</b> ${m.brand || '-'} | <b>ทะเบียน:</b> ${m.plate || '-'}</div>
+                <div><b>ครุภัณฑ์:</b> ${m.assetNo || '-'}</div>
+                <div><b>เกณฑ์สิ้นเปลือง:</b> <span class="font-bold text-amber-700">${rateDetail}</span></div>
+                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-800">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}: ${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
+                <div><b>อุปกรณ์เสริม:</b> <span class="text-slate-500">${m.equipment || 'ไม่มี'}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderOpMachineCheckboxes(containerId, selectedArray) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (GLOBAL_DATA.machines.length === 0) {
+        container.innerHTML = `<span class="text-slate-400 italic">ไม่มีข้อมูลเครื่องจักรในระบบ</span>`;
+        return;
+      }
+
+      GLOBAL_DATA.machines.forEach(m => {
+        const isChecked = selectedArray.includes(m.name) ? 'checked' : '';
+        container.innerHTML += `
+          <label class="flex items-center space-x-2 border-b border-slate-100 pb-1 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="${containerId}_chk" value="${m.name}" ${isChecked} class="rounded text-blue-600">
+            <span><b>${m.name}</b> (${m.brand || 'ยี่ห้อ N/A'} ${m.plate ? 'ทะเบียน ' + m.plate : ''})</span>
+          </label>
+        `;
+      });
+    }
+
+    function renderMasterOperators() {
+      const grid = document.getElementById('masterOperatorGrid');
+      grid.innerHTML = '';
+
+      if (GLOBAL_DATA.operators.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 border rounded-2xl">ไม่มีข้อมูลช่างผู้ขับ</div>`;
+        return;
+      }
+
+      const placeholderAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=80';
+
+      GLOBAL_DATA.operators.forEach(o => {
+        let statusColor = 'bg-blue-50 text-blue-700 border-blue-200';
+        if (o.status === 'ติดภารกิจ' || o.status === 'ลาป่วย') statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        const displayImg = o.imgUrl || placeholderAvatar;
+
+        grid.innerHTML += `
+          <div class="card-hover-effect bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between relative">
+            <div>
+              <div class="flex justify-between items-start space-x-3">
+                <div class="flex items-center space-x-3">
+                  <img src="${displayImg}" onerror="this.src='${placeholderAvatar}'" class="w-12 h-12 object-cover rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                  <div>
+                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">${o.name}</h4>
+                    <p class="text-xs text-slate-500 font-semibold">${o.position || 'พนักงานขับเครื่องจักรกล'}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1 flex-shrink-0">
+                  <button onclick="openEditOpModal(${o.rowIndex})" class="text-blue-700 hover:text-blue-900 font-bold text-xs bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm" title="แก้ไข">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button onclick="delMaster('OPERATOR', ${o.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg transition" title="ลบ">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 space-y-1 mt-3">
+                <div class="font-bold text-indigo-950 text-[11px] flex items-center">
+                  <i class="fa-solid fa-truck-monster text-amber-500 mr-1.5"></i>เครื่องจักรที่รับผิดชอบ:
+                </div>
+                <div class="text-slate-700 font-semibold leading-relaxed">
+                  ${o.responsibility ? o.responsibility.split(', ').map(r => `<span class="inline-block bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[11px] mr-1 mb-1">${r}</span>`).join('') : '<span class="text-slate-400 italic">ไม่ได้ระบุ</span>'}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs text-slate-500 font-semibold">สถานะการทำงาน:</span>
+              <select onchange="quickUpdateOperatorStatus(${o.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusColor} cursor-pointer">
+                <option value="ปฏิบัติงานปกติ" ${o.status === 'ปฏิบัติงานปกติ' ? 'selected' : ''}>ปฏิบัติงานปกติ</option>
+                <option value="ติดภารกิจ" ${o.status === 'ติดภารกิจ' ? 'selected' : ''}>ติดภารกิจ</option>
+                <option value="ลาพักผ่อน/ป่วย" ${o.status === 'ลาพักผ่อน/ป่วย' ? 'selected' : ''}>ลาพักผ่อน/ป่วย</option>
+              </select>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderMasterVillages() {
+      const grid = document.getElementById('masterVillageGrid');
+      grid.innerHTML = '';
+
+      GLOBAL_DATA.villages.forEach(v => {
+        grid.innerHTML += `
+          <div class="bg-slate-50 hover:bg-emerald-50/50 border border-slate-200/80 rounded-xl p-3 text-xs font-bold text-slate-800 flex justify-between items-center transition shadow-sm">
+            <span>หมู่ ${v.no} ${v.name}</span>
+            <div class="flex items-center space-x-1">
+              <button onclick="openEditVillageModal(${v.rowIndex})" class="text-emerald-700 hover:text-emerald-900 font-bold px-1.5 py-0.5 hover:bg-emerald-100 rounded transition" title="แก้ไข">✏️</button>
+              <button onclick="delMaster('VILLAGE', ${v.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 hover:bg-rose-100 rounded transition" title="ลบ">✕</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function openEditMachineModal(rowIndex) {
+      const m = GLOBAL_DATA.machines.find(item => item.rowIndex === rowIndex);
+      if (!m) return;
+
+      document.getElementById('editMachineRowIndex').value = rowIndex;
+      document.getElementById('editMachineName').value = m.name || '';
+      document.getElementById('editMachineBrand').value = m.brand || '';
+      document.getElementById('editMachinePlate').value = m.plate || '';
+      document.getElementById('editMachineAssetNo').value = m.assetNo || '';
+      document.getElementById('editMachineEq').value = m.equipment || '';
+      document.getElementById('editMachineRateKm').value = m.ratePerKm || 0;
+      document.getElementById('editMachineRateHr').value = m.ratePerHour || 0;
+      document.getElementById('editMachineRateDay').value = m.fuelRate || 0;
+      document.getElementById('editMachineStdHr').value = m.standardHoursPerDay || 6;
+      document.getElementById('editMachineImgOld').value = m.imgUrl || '';
+
+      const selOperators = m.caretaker ? m.caretaker.split(', ') : [];
+      renderMachineOperatorCheckboxes('editMachineOperatorCheckboxes', selOperators);
+
+      document.getElementById('editMachineModal').classList.remove('hidden');
+    }
+
+    function closeEditMachineModal() { document.getElementById('editMachineModal').classList.add('hidden'); }
+
+    async function saveEditMachine() {
+      const fileInput = document.getElementById('editMachineFileInput');
+      const btnSave = document.getElementById('btnSaveEditMachine');
+
+      const selOperators = [];
+      document.querySelectorAll('input[name="editMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
+
+      const rateKm = parseFloat(document.getElementById('editMachineRateKm').value) || 0;
+      const rateHr = parseFloat(document.getElementById('editMachineRateHr').value) || 0;
+      const rateDay = parseFloat(document.getElementById('editMachineRateDay').value) || 0;
+      const stdHr = parseFloat(document.getElementById('editMachineStdHr').value) || 6;
+
+      const data = {
+        rowIndex: parseInt(document.getElementById('editMachineRowIndex').value),
+        name: document.getElementById('editMachineName').value,
+        brand: document.getElementById('editMachineBrand').value,
+        plate: document.getElementById('editMachinePlate').value,
+        assetNo: document.getElementById('editMachineAssetNo').value,
+        equipment: document.getElementById('editMachineEq').value,
+        ratePerKm: rateKm,
+        ratePerHour: rateHr,
+        fuelRate: rateDay,
+        standardHoursPerDay: stdHr,
+        caretaker: selOperators.join(', '),
+        imgUrlOld: document.getElementById('editMachineImgOld').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadMachineImage', async function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+
+        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'MACHINE', data: data });
+        if (res && res.success) {
+          showToast('แก้ไขข้อมูลเครื่องจักรสำเร็จ');
+          closeEditMachineModal();
+          loadData();
+        }
+      });
+    }
+
+    function openEditOpModal(rowIndex) {
+      const o = GLOBAL_DATA.operators.find(item => item.rowIndex === rowIndex);
+      if (!o) return;
+
+      document.getElementById('editOpRowIndex').value = rowIndex;
+      document.getElementById('editOpName').value = o.name || '';
+      document.getElementById('editOpPosition').value = o.position || '';
+      document.getElementById('editOpImgOld').value = o.imgUrl || '';
+
+      const selMachines = o.responsibility ? o.responsibility.split(', ') : [];
+      renderOpMachineCheckboxes('editOpMachineCheckboxes', selMachines);
+
+      document.getElementById('editOpModal').classList.remove('hidden');
+    }
+
+    function closeEditOpModal() { document.getElementById('editOpModal').classList.add('hidden'); }
+
+    async function saveEditOperator() {
+      const fileInput = document.getElementById('editOpFileInput');
+      const btnSave = document.getElementById('btnSaveEditOp');
+
+      const selMachines = [];
+      document.querySelectorAll('input[name="editOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
+
+      const data = {
+        rowIndex: parseInt(document.getElementById('editOpRowIndex').value),
+        name: document.getElementById('editOpName').value,
+        position: document.getElementById('editOpPosition').value,
+        responsibility: selMachines.join(', '),
+        imgUrlOld: document.getElementById('editOpImgOld').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadOperatorImage', async function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+
+        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'OPERATOR', data: data });
+        if (res && res.success) {
+          showToast('แก้ไขข้อมูลช่างผู้ขับสำเร็จ');
+          closeEditOpModal();
+          loadData();
+        }
+      });
+    }
+
+    function openEditVillageModal(rowIndex) {
+      const v = GLOBAL_DATA.villages.find(item => item.rowIndex === rowIndex);
+      if (!v) return;
+
+      document.getElementById('editVillageRowIndex').value = rowIndex;
+      document.getElementById('editVillageNo').value = v.no || '';
+      document.getElementById('editVillageName').value = v.name || '';
+
+      document.getElementById('editVillageModal').classList.remove('hidden');
+    }
+
+    function closeEditVillageModal() { document.getElementById('editVillageModal').classList.add('hidden'); }
+
+    async function saveEditVillage() {
+      const data = {
+        rowIndex: parseInt(document.getElementById('editVillageRowIndex').value),
+        no: document.getElementById('editVillageNo').value,
+        name: document.getElementById('editVillageName').value
+      };
+
+      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
+
+      const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'VILLAGE', data: data });
+      if (res && res.success) {
+        showToast('แก้ไขข้อมูลหมู่บ้านสำเร็จ');
+        closeEditVillageModal();
+        loadData();
+      }
+    }
+
+    function processFileUpload(fileInput, serverActionName, callback) {
+      if (!fileInput.files || !fileInput.files[0]) {
+        callback('');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      showToast('กำลังประมวลผลและอัปโหลดรูปภาพลง Google Drive...', 'info');
+
+      reader.onload = async function(e) {
+        const base64Result = e.target.result;
+        if (!base64Result) {
+          showToast('อ่านข้อมูลไฟล์ภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
+          return;
+        }
+
+        try {
+          const res = await callGAS(serverActionName, { base64Data: base64Result, fileName: file.name });
+          callback(res ? (res.imgUrl || '') : '');
+        } catch (err) {
+          showToast('อัปโหลดไฟล์ภาพไม่สำเร็จ: ' + err.message, 'error');
+        }
+      };
+
+      reader.onerror = function() {
+        showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ภาพ', 'error');
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    async function quickUpdateMachineStatus(rowIndex, newStatus) {
+      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'MACHINE', data: { rowIndex: rowIndex, status: newStatus } });
+      if (res && res.success) {
+        showToast('อัปเดตสถานะเครื่องจักรเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    async function quickUpdateOperatorStatus(rowIndex, newStatus) {
+      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'OPERATOR', data: { rowIndex: rowIndex, status: newStatus } });
+      if (res && res.success) {
+        showToast('อัปเดตสถานะช่างผู้ขับเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+
+    function addMasterMachine() {
+      const fileInput = document.getElementById('newMachineFileInput');
+      const btnSave = document.getElementById('btnSaveAddMachine');
+      const selOperators = [];
+      document.querySelectorAll('input[name="newMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
+
+      const rateKm = parseFloat(document.getElementById('newMachineRateKm').value) || 0;
+      const rateHr = parseFloat(document.getElementById('newMachineRateHr').value) || 0;
+      const rateDay = parseFloat(document.getElementById('newMachineRateDay').value) || 0;
+      const stdHr = parseFloat(document.getElementById('newMachineStdHr').value) || 6;
+
+      const data = {
+        name: document.getElementById('newMachineName').value,
+        brand: document.getElementById('newMachineBrand').value,
+        plate: document.getElementById('newMachinePlate').value,
+        assetNo: document.getElementById('newMachineAssetNo').value,
+        fuelRate: rateDay,
+        ratePerKm: rateKm,
+        ratePerHour: rateHr,
+        standardHoursPerDay: stdHr,
+        caretaker: selOperators.join(', '),
+        equipment: document.getElementById('newMachineEq').value,
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadMachineImage', function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+        executeAddMasterMachine(data);
+      });
+    }
+
+    async function executeAddMasterMachine(data) {
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'MACHINE', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลเครื่องจักรสำเร็จ');
+        toggleAddMachineForm();
+        loadData();
+      }
+    }
+
+    function addMasterOperator() {
+      const fileInput = document.getElementById('newOpFileInput');
+      const btnSave = document.getElementById('btnSaveAddOp');
+      const selMachines = [];
+      document.querySelectorAll('input[name="newOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
+
+      const data = {
+        name: document.getElementById('newOpName').value,
+        position: document.getElementById('newOpPosition').value,
+        responsibility: selMachines.join(', '),
+        imgUrl: ''
+      };
+
+      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
+
+      if (btnSave) btnSave.disabled = true;
+
+      processFileUpload(fileInput, 'uploadOperatorImage', function(imgUrl) {
+        if (btnSave) btnSave.disabled = false;
+        data.imgUrl = imgUrl;
+        executeAddMasterOperator(data);
+      });
+    }
+
+    async function executeAddMasterOperator(data) {
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'OPERATOR', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลช่างผู้ขับสำเร็จ');
+        toggleAddOpForm();
+        loadData();
+      }
+    }
+
+    async function addMasterVillage() {
+      const data = {
+        no: document.getElementById('newVillageNo').value,
+        name: document.getElementById('newVillageName').value
+      };
+
+      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
+
+      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'VILLAGE', data: data });
+      if (res && res.success) {
+        showToast('เพิ่มข้อมูลหมู่บ้านสำเร็จ');
+        toggleAddVillageForm();
+        loadData();
+      }
+    }
+
+    async function delMaster(type, rowIndex) {
+      if (!confirm('ยืนยันลบข้อมูลนี้ออกจากระบบ?')) return;
+      const res = await callGAS('manageMasterData', { action: 'DELETE', entityType: type, data: { rowIndex: rowIndex } });
+      if (res && res.success) {
+        showToast('ลบข้อมูลเรียบร้อยแล้ว');
+        loadData();
+      }
+    }
+  </script>
+</body>
+</html>
