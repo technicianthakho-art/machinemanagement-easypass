@@ -436,16 +436,12 @@
               <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
               
               <div class="grid grid-cols-2 gap-2.5">
-                <div>
+                <div class="col-span-2">
                   <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
                   <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
                     <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
                     <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
                   </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
-                  <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
@@ -493,12 +489,23 @@
             </label>
             <div id="modalMachineCheckboxes" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
           </div>
-
         </div>
 
-        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
-          <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-          <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+        <!-- เพิ่มส่วนหมายเหตุ/รายละเอียดเพิ่มเติมที่มุมล่างขวา เหนือกลุ่มปุ่มกด -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <div class="flex justify-end">
+            <div class="w-full lg:w-1/2 space-y-1">
+              <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-comment-dots text-indigo-600"></i> หมายเหตุ / รายละเอียดเพิ่มเติมการจัดแผนงาน
+              </label>
+              <textarea id="modalApprovalRemark" rows="2" placeholder="กรอกหมายเหตุ หรือรายละเอียดเพิ่มเติมสำหรับการจัดแผนงาน..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition shadow-2xs"></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-2 pt-1">
+            <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition font-bold">ยกเลิก</button>
+            <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+          </div>
         </div>
       </div>
     </div>
@@ -866,7 +873,7 @@
     }
 
     /**
-     * 🛠️ Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
+     * Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
      */
     function parseToADDate(dateStr) {
       if (!dateStr) return null;
@@ -891,7 +898,7 @@
     }
 
     /**
-     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
+     * คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
      */
     function calculateDaysBetween(startDateStr, endDateStr) {
       if (!startDateStr || !endDateStr) return 0;
@@ -906,7 +913,7 @@
     }
 
     /**
-     * 🛠️ [จุดปรับแก้] แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
+     * แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
      */
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
@@ -1147,6 +1154,7 @@
           <div><b class="text-slate-500">เครื่องจักรกลที่จัดสรร:</b> ${job.assignedMachine || '-'}</div>
           <div><b class="text-slate-500">ช่างผู้ปฏิบัติงาน:</b> ${job.assignedOperator || '-'}</div>
           <div><b class="text-slate-500">น้ำมันประเมิน:</b> ${job.planFuelLiters || 0} ลิตร (ราคาน้ำมัน ณ วันจัดแผน: ${job.planOilPrice || '-'} บาท/ลิตร)</div>
+          ${job.approvalRemark ? `<div><b class="text-slate-500">หมายเหตุพิจารณา:</b> ${job.approvalRemark}</div>` : ''}
         </div>
 
         ${job.actualStartDate || job.jobProgressStatus ? `
@@ -1194,6 +1202,9 @@
       }
     }
 
+    /**
+     * [ปรับปรุงใหม่] ปรับเลย์เอาต์การ์ดคำขอรออนุมัติให้เป็นแนวนอนกระชับ สวยงามตรงตามรูปภาพอ้างอิง
+     */
     function renderPendingTable() {
       const container = document.getElementById('pendingRequestsContainer');
       container.innerHTML = '';
@@ -1207,27 +1218,40 @@
         const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer">
-            <div class="flex justify-between items-center flex-wrap gap-2">
-              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
-                <i class="fa-solid fa-circle-info text-amber-500 mr-2"></i> ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
+          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-2 border-amber-400/80 hover:border-amber-500 p-3 sm:p-4 rounded-2xl shadow-2xs space-y-2.5 cursor-pointer relative transition">
+            <!-- แถวบน: รหัสคำขอ + ชื่อหมู่บ้าน & แบดจ์รออนุมัติมุมขวา -->
+            <div class="flex justify-between items-center pr-1">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-amber-500 text-base"></i>
+                ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
               </span>
-              <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">รออนุมัติ</span>
+              <span class="bg-amber-100/80 border border-amber-200 text-amber-900 text-xs font-bold px-3 py-1 rounded-full shadow-2xs">รออนุมัติ</span>
             </div>
-            <div class="text-xs sm:text-sm text-slate-700 flex justify-between flex-wrap gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
-              <span><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
-            </div>
-            ${isSuperAdmin ? `
-              <div class="pt-1 text-right flex justify-end space-x-2" onclick="event.stopPropagation()">
-                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition">
-                  <i class="fa-solid fa-xmark mr-1"></i> ปฏิเสธ
-                </button>
-                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded-xl font-bold shadow-sm transition">
-                  <i class="fa-solid fa-check mr-1"></i> อนุมัติ & จัดแผน
-                </button>
+
+            <!-- แถบสีเทาด้านล่าง: จัดวาง ผู้ยื่น / วันที่ขอใช้ / ปุ่มปฏิบัติการ ในแนวนอน -->
+            <div class="bg-slate-50/80 border border-slate-100 p-2 sm:p-2.5 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5">
+              <!-- ฝั่งซ้าย: ผู้ยื่นคำขอ -->
+              <div class="text-xs sm:text-sm text-slate-800 font-semibold truncate pl-1">
+                <b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})
               </div>
-            ` : ''}
+
+              <!-- ฝั่งขวา: วันที่ขอใช้ & ปุ่มปฏิเสธ/อนุมัติ -->
+              <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end" onclick="event.stopPropagation()">
+                <div class="bg-white border border-slate-200/80 text-xs font-bold px-3 py-1.5 rounded-xl text-slate-700 whitespace-nowrap shadow-2xs">
+                  <b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}
+                </div>
+                ${isSuperAdmin ? `
+                  <div class="flex items-center space-x-1.5 flex-shrink-0">
+                    <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-xs">
+                      <i class="fa-solid fa-xmark"></i> ปฏิเสธ
+                    </button>
+                    <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-xs">
+                      <i class="fa-solid fa-check"></i> อนุมัติ & จัดแผน
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
           </div>
         `;
       });
