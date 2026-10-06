@@ -342,11 +342,11 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้วันแรก * (พ.ศ. 2569)</label>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้วันแรก *</label>
             <input type="date" id="reqStartDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้ถึงวันสุดท้าย * (พ.ศ. 2569)</label>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ขอใช้ถึงวันสุดท้าย *</label>
             <input type="date" id="reqEndDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-emerald-500">
           </div>
         </div>
@@ -415,12 +415,12 @@
     </div>
   </div>
 
-  <!-- 🛠️ MODAL 4: ADMIN EDIT/PLANNING MODAL (ปรับแก้ พ.ศ. 2569) -->
+  <!-- MODAL 4: ADMIN EDIT/PLANNING MODAL -->
   <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
         <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน (ปี พ.ศ. 2569)
+          <i class="fa-solid fa-calendar-check text-indigo-600"></i> พิจารณาคำขอ & จัดแผนงาน
         </h3>
         <button onclick="closePlanModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
           ✕
@@ -447,17 +447,14 @@
                   <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
                   <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
-                
-                <!-- 🛠️ ปรับแก้ Label ให้ระบุ พ.ศ. 2569 ชัดเจน -->
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน * (พ.ศ.)</label>
-                  <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
+                  <input type="date" id="modalPlanStartDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน * (พ.ศ.)</label>
-                  <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">วันสิ้นสุดแผนงาน *</label>
+                  <input type="date" id="modalPlanEndDate" onchange="recalculatePerMachineFuel('modal')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
-
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวันตามแผน</label>
                   <input type="number" id="modalPlanDays" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 font-bold text-indigo-600">
@@ -512,7 +509,7 @@
     <div class="bg-white rounded-3xl w-full max-w-6xl shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100 relative flex flex-col">
       <div class="sticky top-0 bg-white z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-3xl shadow-sm">
         <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง (ปี พ.ศ. 2569)
+          <i class="fa-solid fa-list-check text-blue-600"></i> อัปเดตผลการปฏิบัติงานจริง
         </h3>
         <button onclick="closeActualModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-lg flex items-center justify-center transition" title="ปิดหน้าต่าง">
           ✕
@@ -550,12 +547,12 @@
                   
                   <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเริ่มทำงานจริง * (พ.ศ.)</label>
-                      <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs font-bold">
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเริ่มทำงานจริง *</label>
+                      <input type="date" id="actModalStart" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
                     </div>
                     <div>
-                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเสร็จสิ้นงานจริง * (พ.ศ.)</label>
-                      <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs font-bold">
+                      <label class="block font-bold text-slate-700 text-xs mb-1">วันเสร็จสิ้นงานจริง *</label>
+                      <input type="date" id="actModalEnd" onchange="recalculatePerMachineFuel('act')" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 text-xs">
                     </div>
                     <div class="col-span-2">
                       <label class="block font-bold text-slate-700 text-xs mb-1">จำนวนวันปฏิบัติงานจริง</label>
@@ -792,7 +789,7 @@
 
   <!-- CLIENT SCRIPT -->
   <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
     let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
     let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
@@ -869,7 +866,7 @@
     }
 
     /**
-     * 🛠️ Helper สำหรับแปลง Date String เป็น Object Date ค.ศ. เสมอเพื่อนำไปใช้นำนวณ
+     * 🛠️ Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
      */
     function parseToADDate(dateStr) {
       if (!dateStr) return null;
@@ -885,7 +882,7 @@
 
         if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-        if (year > 2400) year -= 543; // แปลง พ.ศ. -> ค.ศ.
+        if (year > 2400) year -= 543; // หากเป็นปี พ.ศ. ให้แปลงกลับเป็น ค.ศ.
         return new Date(year, month, day);
       }
 
@@ -894,19 +891,7 @@
     }
 
     /**
-     * 🛠️ Helper สำหรับแปลง Date String ค.ศ. -> YYYY-MM-DD เพื่อยัดใส่ input type="date"
-     */
-    function formatDateForInput(dateStr) {
-      const d = parseToADDate(dateStr);
-      if (!d) return '';
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    /**
-     * 🛠️ คำนวณจำนวนวันอย่างแม่นยำ รองรับทั้ง พ.ศ./ค.ศ.
+     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
      */
     function calculateDaysBetween(startDateStr, endDateStr) {
       if (!startDateStr || !endDateStr) return 0;
@@ -921,14 +906,14 @@
     }
 
     /**
-     * 🛠️ แปลงแสดงผลวันที่เป็น พ.ศ. (2569) ภาษาไทย 100%
+     * 🛠️ [จุดปรับแก้] แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
      */
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
       const d = parseToADDate(dateStr);
       if (!d) return dateStr;
 
-      const year = d.getFullYear() + 543; // แสดงผลเป็น พ.ศ. 2569
+      const year = d.getFullYear() + 543;
       const monthIndex = d.getMonth();
       const day = d.getDate();
 
@@ -1061,7 +1046,7 @@
         renderSummaryJobs();
         showToast('เข้าสู่ระบบสำเร็จ');
       } else {
-        showToast(res ? res.message : 'เข้าสู่ระบบไม่ถูกต้อง', 'error');
+        showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
       }
     }
 
@@ -1099,8 +1084,8 @@
         requesterPosition: document.getElementById('requesterPosition').value,
         villageNo: document.getElementById('villageNo').value,
         villageName: document.getElementById('villageName').value,
-        reqStartDate: formatDateForInput(document.getElementById('reqStartDate').value),
-        reqEndDate: formatDateForInput(document.getElementById('reqEndDate').value),
+        reqStartDate: document.getElementById('reqStartDate').value,
+        reqEndDate: document.getElementById('reqEndDate').value,
         docLink: document.getElementById('docLink').value
       };
       
@@ -1336,12 +1321,8 @@
       document.getElementById('modalRowIndex').value = rowIndex;
       document.getElementById('modalApprovalStatus').value = 'Accepted';
       document.getElementById('modalApprovalRemark').value = job.approvalRemark || '';
-      
-      const pStart = job.planStartDate || job.reqStartDate || '';
-      const pEnd = job.planEndDate || job.reqEndDate || '';
-
-      document.getElementById('modalPlanStartDate').value = formatDateForInput(pStart);
-      document.getElementById('modalPlanEndDate').value = formatDateForInput(pEnd);
+      document.getElementById('modalPlanStartDate').value = job.planStartDate || job.reqStartDate || '';
+      document.getElementById('modalPlanEndDate').value = job.planEndDate || job.reqEndDate || '';
       document.getElementById('modalPlanOilPrice').value = job.planOilPrice || 35.00;
 
       renderPerMachineCheckboxes('modalMachineCheckboxes', 'modal', job.assignedMachine);
@@ -1493,8 +1474,8 @@
         rowIndex: parseInt(document.getElementById('modalRowIndex').value),
         approvalStatus: document.getElementById('modalApprovalStatus').value,
         approvalRemark: document.getElementById('modalApprovalRemark').value,
-        planStartDate: formatDateForInput(document.getElementById('modalPlanStartDate').value),
-        planEndDate: formatDateForInput(document.getElementById('modalPlanEndDate').value),
+        planStartDate: document.getElementById('modalPlanStartDate').value,
+        planEndDate: document.getElementById('modalPlanEndDate').value,
         planDays: parseInt(document.getElementById('modalPlanDays').value) || 0,
         assignedMachine: selMachines.join(', '),
         assignedOperator: selOperators.join(', '),
@@ -1531,8 +1512,8 @@
       const startDate = job.actualStartDate || job.planStartDate || '';
       const endDate = job.actualEndDate || job.planEndDate || '';
 
-      document.getElementById('actModalStart').value = formatDateForInput(startDate);
-      document.getElementById('actModalEnd').value = formatDateForInput(endDate);
+      document.getElementById('actModalStart').value = startDate;
+      document.getElementById('actModalEnd').value = endDate;
       
       const jobOilPrice = parseFloat(job.planOilPrice) || 35.00;
       document.getElementById('lblJobOilPrice').innerText = jobOilPrice.toFixed(2);
@@ -1580,8 +1561,8 @@
         rowIndex: parseInt(document.getElementById('actRowIndex').value),
         jobProgressStatus: status,
         issueDetail: document.getElementById('actIssueDetail').value,
-        actualStartDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? formatDateForInput(document.getElementById('actModalStart').value) : '',
-        actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? formatDateForInput(document.getElementById('actModalEnd').value) : '',
+        actualStartDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalStart').value : '',
+        actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalEnd').value : '',
         actualDays: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseInt(document.getElementById('actModalDays').value) || 0 : 0,
         actualFuelLiters: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalFuel').value) || 0 : 0,
         totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0,
