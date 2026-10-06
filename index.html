@@ -436,16 +436,12 @@
               <h4 class="font-black text-slate-900 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-indigo-600"></i> ข้อมูลการจัดแผนงาน</h4>
               
               <div class="grid grid-cols-2 gap-2.5">
-                <div>
+                <div class="col-span-2">
                   <label class="block text-xs font-bold text-slate-700 mb-1">ผลการพิจารณา</label>
                   <select id="modalApprovalStatus" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900 font-bold">
                     <option value="Accepted">อนุมัติ (รับคำร้อง)</option>
                     <option value="Rejected">ปฏิเสธคำขอ (Reject)</option>
                   </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุพิจารณา</label>
-                  <input type="text" id="modalApprovalRemark" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-slate-900">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">วันเริ่มแผนงาน *</label>
@@ -496,9 +492,20 @@
 
         </div>
 
-        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
-          <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-          <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+        <!-- BOTTOM SECTION: REMARK / PROJECT NOTES (MUM LAUNG SAI) & ACTION BUTTONS -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+          <div class="w-full sm:w-2/3 bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1">
+            <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-note-sticky text-amber-500"></i> หมายเหตุ / รายละเอียดเพิ่มเติม
+            </label>
+            <textarea id="modalApprovalRemark" rows="2" placeholder="ระบุหมายเหตุ หรือเงื่อนไขเพิ่มเติมเกี่ยวกับการจัดแผนงาน..." class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"></textarea>
+            <p class="text-[10px] text-slate-400 italic mb-0">* หมายเหตุนี้จะเชื่อมโยงไปแสดงในตารางติดตาม แผนงานจริง และเอกสาร PDF</p>
+          </div>
+
+          <div class="flex justify-end space-x-2 self-end sm:self-center">
+            <button onclick="closePlanModal()" class="px-5 py-2.5 text-xs sm:text-sm text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
+            <button onclick="saveJobPlan()" class="px-6 py-2.5 text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition">บันทึกแผนงาน</button>
+          </div>
         </div>
       </div>
     </div>
@@ -832,7 +839,7 @@
         amount.innerText = `${(data.totalAmount || 0).toLocaleString()} บาท`;
 
         if (isResend) {
-          title.innerText = '⚠️ เตือนการส่งคำร้อง Easy Pass ซ้ำ!';
+          title.innerText = '⚠️️ เตือนการส่งคำร้อง Easy Pass ซ้ำ!';
           msg.innerText = '* รายการนี้เคยถูกยิงส่งแล้ว ยืนยันการส่งคำร้องซ้ำอีกครั้ง?';
         } else {
           title.innerText = 'ยืนยันการส่งข้อมูล Easy Pass';
@@ -865,9 +872,6 @@
       });
     }
 
-    /**
-     * 🛠️ Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
-     */
     function parseToADDate(dateStr) {
       if (!dateStr) return null;
       if (dateStr instanceof Date) return dateStr;
@@ -882,7 +886,7 @@
 
         if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-        if (year > 2400) year -= 543; // หากเป็นปี พ.ศ. ให้แปลงกลับเป็น ค.ศ.
+        if (year > 2400) year -= 543;
         return new Date(year, month, day);
       }
 
@@ -890,9 +894,6 @@
       return isNaN(d.getTime()) ? null : d;
     }
 
-    /**
-     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
-     */
     function calculateDaysBetween(startDateStr, endDateStr) {
       if (!startDateStr || !endDateStr) return 0;
       
@@ -905,9 +906,6 @@
       return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     }
 
-    /**
-     * 🛠️ [จุดปรับแก้] แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
-     */
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
       const d = parseToADDate(dateStr);
@@ -1147,6 +1145,7 @@
           <div><b class="text-slate-500">เครื่องจักรกลที่จัดสรร:</b> ${job.assignedMachine || '-'}</div>
           <div><b class="text-slate-500">ช่างผู้ปฏิบัติงาน:</b> ${job.assignedOperator || '-'}</div>
           <div><b class="text-slate-500">น้ำมันประเมิน:</b> ${job.planFuelLiters || 0} ลิตร (ราคาน้ำมัน ณ วันจัดแผน: ${job.planOilPrice || '-'} บาท/ลิตร)</div>
+          <div><b class="text-slate-500">หมายเหตุ / รายละเอียดแผน:</b> <span class="text-indigo-900 font-semibold">${job.approvalRemark || '-'}</span></div>
         </div>
 
         ${job.actualStartDate || job.jobProgressStatus ? `
@@ -1194,6 +1193,9 @@
       }
     }
 
+    /**
+     * 🛠️ [จุดปรับแก้] ยุบการ์ดคำขอรอพิจารณาอนุมัติให้กระชับเป็นบรรทัดเดียว (Compact Single-Row Layout)
+     */
     function renderPendingTable() {
       const container = document.getElementById('pendingRequestsContainer');
       container.innerHTML = '';
@@ -1207,24 +1209,32 @@
         const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer">
-            <div class="flex justify-between items-center flex-wrap gap-2">
-              <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
-                <i class="fa-solid fa-circle-info text-amber-500 mr-2"></i> ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
-              </span>
-              <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">รออนุมัติ</span>
+          <div onclick="openProjectDetails('${req.requestId}')" class="card-hover-effect bg-white border-l-4 border-amber-500 border border-slate-200/80 p-3.5 rounded-2xl shadow-sm cursor-pointer transition flex flex-col md:flex-row items-center justify-between gap-3">
+            
+            <!-- โซนข้อมูลหลัก (รหัส, ผู้ยื่น, ช่วงวันขอใช้) -->
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between flex-grow w-full md:w-auto gap-2">
+              <div class="flex items-center space-x-2.5 flex-shrink-0">
+                <i class="fa-solid fa-circle-info text-amber-500 text-sm"></i>
+                <span class="font-extrabold text-slate-900 text-xs sm:text-sm hover:underline">
+                  ${req.requestId} - หมู่ ${req.villageNo} ${req.villageName}
+                </span>
+                <span class="bg-amber-100 text-amber-900 text-[11px] font-bold px-2.5 py-0.5 rounded-full ml-1">รออนุมัติ</span>
+              </div>
+
+              <div class="flex items-center space-x-4 text-xs text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex-grow w-full lg:w-auto justify-between lg:justify-start">
+                <span class="truncate"><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
+                <span class="flex-shrink-0 font-extrabold text-slate-800"><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
+              </div>
             </div>
-            <div class="text-xs sm:text-sm text-slate-700 flex justify-between flex-wrap gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span><b>ผู้ยื่น:</b> ${req.requesterName} (${req.requesterPosition})</span>
-              <span><b>ขอใช้:</b> ${formatThaiDate(req.reqStartDate)} ถึง ${formatThaiDate(req.reqEndDate)}</span>
-            </div>
+
+            <!-- โซนปุ่มการทำงาน (ยกขึ้นมาวางขนานขวาสุด) -->
             ${isSuperAdmin ? `
-              <div class="pt-1 text-right flex justify-end space-x-2" onclick="event.stopPropagation()">
-                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition">
-                  <i class="fa-solid fa-xmark mr-1"></i> ปฏิเสธ
+              <div class="flex items-center space-x-2 flex-shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 border-slate-100 pt-2 md:pt-0" onclick="event.stopPropagation()">
+                <button onclick="rejectRequest(${req.rowIndex})" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow-sm transition flex items-center gap-1">
+                  <i class="fa-solid fa-xmark"></i> ปฏิเสธ
                 </button>
-                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-1.5 rounded-xl font-bold shadow-sm transition">
-                  <i class="fa-solid fa-check mr-1"></i> อนุมัติ & จัดแผน
+                <button onclick="openPlanModal(${req.rowIndex})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow-sm transition flex items-center gap-1">
+                  <i class="fa-solid fa-check"></i> อนุมัติ & จัดแผน
                 </button>
               </div>
             ` : ''}
@@ -1259,7 +1269,7 @@
         const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect job-card-row bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm transition cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.assignedOperator} ${job.assignedMachine}">
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect job-card-row bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm transition cursor-pointer flex flex-col md:flex-row items-center justify-between gap-3" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.assignedOperator} ${job.assignedMachine} ${job.approvalRemark}">
             <div class="flex items-center space-x-3.5 flex-grow w-full md:w-auto overflow-hidden">
               <div class="flex-shrink-0">${statusBadge}</div>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm flex-grow items-center border-l border-slate-100 pl-4">
@@ -1268,6 +1278,7 @@
                     <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i>${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
                   </span>
                   <div class="text-xs text-slate-500 truncate"><span class="font-semibold text-slate-400">ผู้ยื่น:</span> ${job.requesterName}</div>
+                  ${job.approvalRemark ? `<div class="text-[11px] text-indigo-600 font-bold truncate mt-0.5"><i class="fa-solid fa-note-sticky mr-1"></i>${job.approvalRemark}</div>` : ''}
                 </div>
                 <div class="truncate">
                   <span class="text-[11px] text-slate-400 block font-semibold leading-none mb-1">ช่วงแผนงาน</span>
@@ -1651,7 +1662,7 @@
         const canAction = CURRENT_USER.role === 'SUPER_ADMIN';
 
         container.innerHTML += `
-          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect easypass-card-row bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer transition ${job.isEasyPassSent ? 'bg-emerald-50/30 border-emerald-300' : 'bg-white border-amber-300'}" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.easyPassTxId}">
+          <div onclick="openProjectDetails('${job.requestId}')" class="card-hover-effect easypass-card-row bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 cursor-pointer transition ${job.isEasyPassSent ? 'bg-emerald-50/30 border-emerald-300' : 'bg-white border-amber-300'}" data-search="${job.requestId} ${job.requesterName} ${job.villageName} ${job.easyPassTxId} ${job.approvalRemark}">
             <div class="flex justify-between items-center flex-wrap gap-2">
               <span class="font-extrabold text-slate-900 text-sm sm:text-base hover:underline flex items-center">
                 <i class="fa-solid fa-circle-info text-emerald-600 mr-2"></i> ${job.requestId} - หมู่ ${job.villageNo} ${job.villageName}
@@ -1665,6 +1676,8 @@
               <div><span class="font-semibold text-slate-400 block text-xs">ช่างผู้ปฏิบัติงาน</span> <b class="text-blue-700">${job.assignedOperator || '-'}</b></div>
               <div><span class="font-semibold text-slate-400 block text-xs">ช่วงวันปฏิบัติงานจริง</span> <b>${formatThaiDate(job.actualStartDate)} ถึง ${formatThaiDate(job.actualEndDate)}</b></div>
             </div>
+
+            ${job.approvalRemark ? `<div class="text-xs text-indigo-700 font-bold bg-indigo-50/80 px-3 py-1.5 rounded-xl border border-indigo-100"><i class="fa-solid fa-note-sticky mr-1.5 text-amber-500"></i><b>หมายเหตุจัดแผน:</b> ${job.approvalRemark}</div>` : ''}
 
             <div class="flex justify-between items-center flex-wrap gap-2 pt-1">
               <div class="text-xs sm:text-sm text-slate-700">
@@ -1869,7 +1882,7 @@
                 <div><b>ยี่ห้อ:</b> ${m.brand || '-'} | <b>ทะเบียน:</b> ${m.plate || '-'}</div>
                 <div><b>ครุภัณฑ์:</b> ${m.assetNo || '-'}</div>
                 <div><b>เกณฑ์สิ้นเปลือง:</b> <span class="font-bold text-amber-700">${rateDetail}</span></div>
-                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-800">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}: ${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
+                <div><b>ผู้ดูแล/คนขับ:</b> <span class="font-bold text-blue-800">${m.caretaker ? m.caretaker.split(', ').map((c, i) => `<span class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] mr-1 mb-0.5">คนขับที่ ${i+1}:${c}</span>`).join('') : '<span class="text-slate-400 italic">ไม่มีผู้ดูแล</span>'}</span></div>
                 <div><b>อุปกรณ์เสริม:</b> <span class="text-slate-500">${m.equipment || 'ไม่มี'}</span></div>
               </div>
             </div>
@@ -1993,289 +2006,4 @@
       document.getElementById('editMachineStdHr').value = m.standardHoursPerDay || 6;
       document.getElementById('editMachineImgOld').value = m.imgUrl || '';
 
-      const selOperators = m.caretaker ? m.caretaker.split(', ') : [];
-      renderMachineOperatorCheckboxes('editMachineOperatorCheckboxes', selOperators);
-
-      document.getElementById('editMachineModal').classList.remove('hidden');
-    }
-
-    function closeEditMachineModal() { document.getElementById('editMachineModal').classList.add('hidden'); }
-
-    async function saveEditMachine() {
-      const fileInput = document.getElementById('editMachineFileInput');
-      const btnSave = document.getElementById('btnSaveEditMachine');
-
-      const selOperators = [];
-      document.querySelectorAll('input[name="editMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
-
-      const rateKm = parseFloat(document.getElementById('editMachineRateKm').value) || 0;
-      const rateHr = parseFloat(document.getElementById('editMachineRateHr').value) || 0;
-      const rateDay = parseFloat(document.getElementById('editMachineRateDay').value) || 0;
-      const stdHr = parseFloat(document.getElementById('editMachineStdHr').value) || 6;
-
-      const data = {
-        rowIndex: parseInt(document.getElementById('editMachineRowIndex').value),
-        name: document.getElementById('editMachineName').value,
-        brand: document.getElementById('editMachineBrand').value,
-        plate: document.getElementById('editMachinePlate').value,
-        assetNo: document.getElementById('editMachineAssetNo').value,
-        equipment: document.getElementById('editMachineEq').value,
-        ratePerKm: rateKm,
-        ratePerHour: rateHr,
-        fuelRate: rateDay,
-        standardHoursPerDay: stdHr,
-        caretaker: selOperators.join(', '),
-        imgUrlOld: document.getElementById('editMachineImgOld').value,
-        imgUrl: ''
-      };
-
-      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
-
-      if (btnSave) btnSave.disabled = true;
-
-      processFileUpload(fileInput, 'uploadMachineImage', async function(imgUrl) {
-        if (btnSave) btnSave.disabled = false;
-        data.imgUrl = imgUrl;
-
-        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'MACHINE', data: data });
-        if (res && res.success) {
-          showToast('แก้ไขข้อมูลเครื่องจักรสำเร็จ');
-          closeEditMachineModal();
-          loadData();
-        }
-      });
-    }
-
-    function openEditOpModal(rowIndex) {
-      const o = GLOBAL_DATA.operators.find(item => item.rowIndex === rowIndex);
-      if (!o) return;
-
-      document.getElementById('editOpRowIndex').value = rowIndex;
-      document.getElementById('editOpName').value = o.name || '';
-      document.getElementById('editOpPosition').value = o.position || '';
-      document.getElementById('editOpImgOld').value = o.imgUrl || '';
-
-      const selMachines = o.responsibility ? o.responsibility.split(', ') : [];
-      renderOpMachineCheckboxes('editOpMachineCheckboxes', selMachines);
-
-      document.getElementById('editOpModal').classList.remove('hidden');
-    }
-
-    function closeEditOpModal() { document.getElementById('editOpModal').classList.add('hidden'); }
-
-    async function saveEditOperator() {
-      const fileInput = document.getElementById('editOpFileInput');
-      const btnSave = document.getElementById('btnSaveEditOp');
-
-      const selMachines = [];
-      document.querySelectorAll('input[name="editOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
-
-      const data = {
-        rowIndex: parseInt(document.getElementById('editOpRowIndex').value),
-        name: document.getElementById('editOpName').value,
-        position: document.getElementById('editOpPosition').value,
-        responsibility: selMachines.join(', '),
-        imgUrlOld: document.getElementById('editOpImgOld').value,
-        imgUrl: ''
-      };
-
-      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
-
-      if (btnSave) btnSave.disabled = true;
-
-      processFileUpload(fileInput, 'uploadOperatorImage', async function(imgUrl) {
-        if (btnSave) btnSave.disabled = false;
-        data.imgUrl = imgUrl;
-
-        const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'OPERATOR', data: data });
-        if (res && res.success) {
-          showToast('แก้ไขข้อมูลช่างผู้ขับสำเร็จ');
-          closeEditOpModal();
-          loadData();
-        }
-      });
-    }
-
-    function openEditVillageModal(rowIndex) {
-      const v = GLOBAL_DATA.villages.find(item => item.rowIndex === rowIndex);
-      if (!v) return;
-
-      document.getElementById('editVillageRowIndex').value = rowIndex;
-      document.getElementById('editVillageNo').value = v.no || '';
-      document.getElementById('editVillageName').value = v.name || '';
-
-      document.getElementById('editVillageModal').classList.remove('hidden');
-    }
-
-    function closeEditVillageModal() { document.getElementById('editVillageModal').classList.add('hidden'); }
-
-    async function saveEditVillage() {
-      const data = {
-        rowIndex: parseInt(document.getElementById('editVillageRowIndex').value),
-        no: document.getElementById('editVillageNo').value,
-        name: document.getElementById('editVillageName').value
-      };
-
-      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
-
-      const res = await callGAS('manageMasterData', { action: 'EDIT', entityType: 'VILLAGE', data: data });
-      if (res && res.success) {
-        showToast('แก้ไขข้อมูลหมู่บ้านสำเร็จ');
-        closeEditVillageModal();
-        loadData();
-      }
-    }
-
-    function processFileUpload(fileInput, serverActionName, callback) {
-      if (!fileInput.files || !fileInput.files[0]) {
-        callback('');
-        return;
-      }
-
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-      showToast('กำลังประมวลผลและอัปโหลดรูปภาพลง Google Drive...', 'info');
-
-      reader.onload = async function(e) {
-        const base64Result = e.target.result;
-        if (!base64Result) {
-          showToast('อ่านข้อมูลไฟล์ภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
-          return;
-        }
-
-        try {
-          const res = await callGAS(serverActionName, { base64Data: base64Result, fileName: file.name });
-          callback(res ? (res.imgUrl || '') : '');
-        } catch (err) {
-          showToast('อัปโหลดไฟล์ภาพไม่สำเร็จ: ' + err.message, 'error');
-        }
-      };
-
-      reader.onerror = function() {
-        showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ภาพ', 'error');
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    async function quickUpdateMachineStatus(rowIndex, newStatus) {
-      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'MACHINE', data: { rowIndex: rowIndex, status: newStatus } });
-      if (res && res.success) {
-        showToast('อัปเดตสถานะเครื่องจักรเรียบร้อยแล้ว');
-        loadData();
-      }
-    }
-
-    async function quickUpdateOperatorStatus(rowIndex, newStatus) {
-      const res = await callGAS('manageMasterData', { action: 'UPDATE_STATUS', entityType: 'OPERATOR', data: { rowIndex: rowIndex, status: newStatus } });
-      if (res && res.success) {
-        showToast('อัปเดตสถานะช่างผู้ขับเรียบร้อยแล้ว');
-        loadData();
-      }
-    }
-
-    function addMasterMachine() {
-      const fileInput = document.getElementById('newMachineFileInput');
-      const btnSave = document.getElementById('btnSaveAddMachine');
-      const selOperators = [];
-      document.querySelectorAll('input[name="newMachineOperatorCheckboxes_chk"]:checked').forEach(c => selOperators.push(c.value));
-
-      const rateKm = parseFloat(document.getElementById('newMachineRateKm').value) || 0;
-      const rateHr = parseFloat(document.getElementById('newMachineRateHr').value) || 0;
-      const rateDay = parseFloat(document.getElementById('newMachineRateDay').value) || 0;
-      const stdHr = parseFloat(document.getElementById('newMachineStdHr').value) || 6;
-
-      const data = {
-        name: document.getElementById('newMachineName').value,
-        brand: document.getElementById('newMachineBrand').value,
-        plate: document.getElementById('newMachinePlate').value,
-        assetNo: document.getElementById('newMachineAssetNo').value,
-        fuelRate: rateDay,
-        ratePerKm: rateKm,
-        ratePerHour: rateHr,
-        standardHoursPerDay: stdHr,
-        caretaker: selOperators.join(', '),
-        equipment: document.getElementById('newMachineEq').value,
-        imgUrl: ''
-      };
-
-      if (!data.name) return showToast('กรุณาระบุชื่อเครื่องจักร', 'error');
-
-      if (btnSave) btnSave.disabled = true;
-
-      processFileUpload(fileInput, 'uploadMachineImage', function(imgUrl) {
-        if (btnSave) btnSave.disabled = false;
-        data.imgUrl = imgUrl;
-        executeAddMasterMachine(data);
-      });
-    }
-
-    async function executeAddMasterMachine(data) {
-      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'MACHINE', data: data });
-      if (res && res.success) {
-        showToast('เพิ่มข้อมูลเครื่องจักรสำเร็จ');
-        toggleAddMachineForm();
-        loadData();
-      }
-    }
-
-    function addMasterOperator() {
-      const fileInput = document.getElementById('newOpFileInput');
-      const btnSave = document.getElementById('btnSaveAddOp');
-      const selMachines = [];
-      document.querySelectorAll('input[name="newOpMachineCheckboxes_chk"]:checked').forEach(c => selMachines.push(c.value));
-
-      const data = {
-        name: document.getElementById('newOpName').value,
-        position: document.getElementById('newOpPosition').value,
-        responsibility: selMachines.join(', '),
-        imgUrl: ''
-      };
-
-      if (!data.name) return showToast('กรุณาระบุชื่อช่างผู้ขับ', 'error');
-
-      if (btnSave) btnSave.disabled = true;
-
-      processFileUpload(fileInput, 'uploadOperatorImage', function(imgUrl) {
-        if (btnSave) btnSave.disabled = false;
-        data.imgUrl = imgUrl;
-        executeAddMasterOperator(data);
-      });
-    }
-
-    async function executeAddMasterOperator(data) {
-      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'OPERATOR', data: data });
-      if (res && res.success) {
-        showToast('เพิ่มข้อมูลช่างผู้ขับสำเร็จ');
-        toggleAddOpForm();
-        loadData();
-      }
-    }
-
-    async function addMasterVillage() {
-      const data = {
-        no: document.getElementById('newVillageNo').value,
-        name: document.getElementById('newVillageName').value
-      };
-
-      if (!data.no || !data.name) return showToast('กรุณากรอกข้อมูลหมู่บ้านให้ครบถ้วน', 'error');
-
-      const res = await callGAS('manageMasterData', { action: 'ADD', entityType: 'VILLAGE', data: data });
-      if (res && res.success) {
-        showToast('เพิ่มข้อมูลหมู่บ้านสำเร็จ');
-        toggleAddVillageForm();
-        loadData();
-      }
-    }
-
-    async function delMaster(type, rowIndex) {
-      if (!confirm('ยืนยันลบข้อมูลนี้ออกจากระบบ?')) return;
-      const res = await callGAS('manageMasterData', { action: 'DELETE', entityType: type, data: { rowIndex: rowIndex } });
-      if (res && res.success) {
-        showToast('ลบข้อมูลเรียบร้อยแล้ว');
-        loadData();
-      }
-    }
-  </script>
-</body>
-</html>
+      const selOperators = m.caretaker ? m.caret
