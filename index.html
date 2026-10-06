@@ -866,7 +866,7 @@
     }
 
     /**
-     * 🛠️ Helper สำหรับแปลง Date String ให้เป็น Object Date ค.ศ. เสมอ
+     * 🛠️ Helper สำหรับแปลง Date String เป็น Object Date ค.ศ. เสมอเพื่อใช้คำนวณ
      */
     function parseToADDate(dateStr) {
       if (!dateStr) return null;
@@ -882,7 +882,7 @@
 
         if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-        if (year > 2400) year -= 543; // หากเป็นปี พ.ศ. ให้แปลงกลับเป็น ค.ศ.
+        if (year > 2400) year -= 543; // หากเป็นปี พ.ศ. ให้ปรับเป็น ค.ศ.
         return new Date(year, month, day);
       }
 
@@ -891,7 +891,19 @@
     }
 
     /**
-     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ พร้อมรองรับข้ามรูปแบบ พ.ศ./ค.ศ.
+     * 🛠️ Helper สำหรับแปลง Date String ค.ศ. -> YYYY-MM-DD เพื่อยัดใส่ input type="date"
+     */
+    function formatDateForInput(dateStr) {
+      const d = parseToADDate(dateStr);
+      if (!d) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    /**
+     * 🛠️ [จุดปรับแก้] คำนวณจำนวนวันอย่างแม่นยำ ป้องกันบั๊กการเปรียบเทียบข้ามปี พ.ศ./ค.ศ.
      */
     function calculateDaysBetween(startDateStr, endDateStr) {
       if (!startDateStr || !endDateStr) return 0;
@@ -906,7 +918,7 @@
     }
 
     /**
-     * 🛠️ [จุดปรับแก้] แปลงแสดงวันที่ภาษาไทยอย่างรัดกุม
+     * 🛠️ [จุดปรับแก้] แปลงแสดงผลวันที่เป็น พ.ศ. ภาษาไทยอย่างรัดกุม
      */
     function formatThaiDate(dateStr) {
       if (!dateStr) return '-';
@@ -1084,8 +1096,8 @@
         requesterPosition: document.getElementById('requesterPosition').value,
         villageNo: document.getElementById('villageNo').value,
         villageName: document.getElementById('villageName').value,
-        reqStartDate: document.getElementById('reqStartDate').value,
-        reqEndDate: document.getElementById('reqEndDate').value,
+        reqStartDate: formatDateForInput(document.getElementById('reqStartDate').value),
+        reqEndDate: formatDateForInput(document.getElementById('reqEndDate').value),
         docLink: document.getElementById('docLink').value
       };
       
@@ -1321,8 +1333,12 @@
       document.getElementById('modalRowIndex').value = rowIndex;
       document.getElementById('modalApprovalStatus').value = 'Accepted';
       document.getElementById('modalApprovalRemark').value = job.approvalRemark || '';
-      document.getElementById('modalPlanStartDate').value = job.planStartDate || job.reqStartDate || '';
-      document.getElementById('modalPlanEndDate').value = job.planEndDate || job.reqEndDate || '';
+      
+      const pStart = job.planStartDate || job.reqStartDate || '';
+      const pEnd = job.planEndDate || job.reqEndDate || '';
+
+      document.getElementById('modalPlanStartDate').value = formatDateForInput(pStart);
+      document.getElementById('modalPlanEndDate').value = formatDateForInput(pEnd);
       document.getElementById('modalPlanOilPrice').value = job.planOilPrice || 35.00;
 
       renderPerMachineCheckboxes('modalMachineCheckboxes', 'modal', job.assignedMachine);
@@ -1474,8 +1490,8 @@
         rowIndex: parseInt(document.getElementById('modalRowIndex').value),
         approvalStatus: document.getElementById('modalApprovalStatus').value,
         approvalRemark: document.getElementById('modalApprovalRemark').value,
-        planStartDate: document.getElementById('modalPlanStartDate').value,
-        planEndDate: document.getElementById('modalPlanEndDate').value,
+        planStartDate: formatDateForInput(document.getElementById('modalPlanStartDate').value),
+        planEndDate: formatDateForInput(document.getElementById('modalPlanEndDate').value),
         planDays: parseInt(document.getElementById('modalPlanDays').value) || 0,
         assignedMachine: selMachines.join(', '),
         assignedOperator: selOperators.join(', '),
@@ -1512,8 +1528,8 @@
       const startDate = job.actualStartDate || job.planStartDate || '';
       const endDate = job.actualEndDate || job.planEndDate || '';
 
-      document.getElementById('actModalStart').value = startDate;
-      document.getElementById('actModalEnd').value = endDate;
+      document.getElementById('actModalStart').value = formatDateForInput(startDate);
+      document.getElementById('actModalEnd').value = formatDateForInput(endDate);
       
       const jobOilPrice = parseFloat(job.planOilPrice) || 35.00;
       document.getElementById('lblJobOilPrice').innerText = jobOilPrice.toFixed(2);
@@ -1561,8 +1577,8 @@
         rowIndex: parseInt(document.getElementById('actRowIndex').value),
         jobProgressStatus: status,
         issueDetail: document.getElementById('actIssueDetail').value,
-        actualStartDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalStart').value : '',
-        actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? document.getElementById('actModalEnd').value : '',
+        actualStartDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? formatDateForInput(document.getElementById('actModalStart').value) : '',
+        actualEndDate: status === 'ปฏิบัติงานแล้วเสร็จ' ? formatDateForInput(document.getElementById('actModalEnd').value) : '',
         actualDays: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseInt(document.getElementById('actModalDays').value) || 0 : 0,
         actualFuelLiters: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalFuel').value) || 0 : 0,
         totalAmount: status === 'ปฏิบัติงานแล้วเสร็จ' ? parseFloat(document.getElementById('actModalAmount').value) || 0 : 0,
