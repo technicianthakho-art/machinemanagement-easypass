@@ -16,6 +16,37 @@
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .card-hover-effect { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-hover-effect:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
+
+    /* 3D Glassmorphic Cylinder Fuel Tank Styles */
+    .cylinder-tank {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85));
+      border-radius: 24px;
+      border: 2px solid rgba(245, 158, 11, 0.4);
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 25px -5px rgba(0,0,0,0.3);
+    }
+    .liquid-wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+    }
+    .liquid-wave::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: rgba(254, 243, 199, 0.6);
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body class="text-slate-900 relative min-h-screen antialiased selection:bg-amber-400 selection:text-slate-950 pb-12 bg-slate-50">
@@ -38,6 +69,12 @@
           </div>
         </div>
         <div class="flex items-center space-x-2.5">
+          <!-- QUICK ACCESS FUEL STACK BADGE -->
+          <button onclick="switchTab('masterTab')" class="bg-slate-800 hover:bg-slate-700 border border-amber-500/50 text-amber-400 font-extrabold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-gas-pump text-amber-500"></i>
+            <span id="navFuelBadge">คลัง: 0 ลิตร</span>
+          </button>
+
           <button id="btnCreateRequest" onclick="openRequestModal()" class="hidden bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
             <i class="fa-solid fa-plus-circle text-base"></i> ยื่นคำขอ
           </button>
@@ -68,7 +105,7 @@
   <!-- MAIN CONTAINER -->
   <div class="w-full px-4 sm:px-6 py-5">
 
-    <!-- NAVIGATION TABS -->
+    <!-- NAVIGATION TABS ( Guest สามารถคลิกดูได้ทุกเมนู 1-5 ) -->
     <div class="flex flex-wrap gap-2 mb-5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-fit">
       <button onclick="switchTab('trackingTab')" id="btn-trackingTab" class="tab-btn bg-slate-900 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
         <i class="fa-solid fa-list-check text-amber-400"></i> 1. ติดตามแผนปฏิบัติงาน
@@ -77,14 +114,14 @@
         <i class="fa-solid fa-hourglass-half text-amber-500"></i> 2. คำขอรออนุมัติ
         <span id="pendingBadgeTab" class="hidden ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
       </button>
-      <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
+      <button onclick="switchTab('summaryTab')" id="btn-summaryTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition relative flex items-center gap-2">
         <i class="fa-solid fa-receipt text-emerald-600"></i> 3. สรุปผลส่งตัดเงิน Easy Pass
         <span id="easyPassBadgeTab" class="hidden ml-1 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
       </button>
-      <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+      <button onclick="switchTab('analyticsTab')" id="btn-analyticsTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
         <i class="fa-solid fa-chart-pie text-purple-600"></i> 4. Dashboard สรุปผล
       </button>
-      <button onclick="switchTab('masterTab')" id="btn-masterTab" class="tab-btn hidden text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+      <button onclick="switchTab('masterTab')" id="btn-masterTab" class="tab-btn text-slate-600 hover:text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
         <i class="fa-solid fa-gears text-slate-500"></i> 5. บริหารจัดการข้อมูล
       </button>
     </div>
@@ -182,8 +219,64 @@
       </div>
     </div>
 
-    <!-- TAB 5: MASTER MANAGEMENT -->
+    <!-- TAB 5: MASTER MANAGEMENT & FUEL STOCK TANK -->
     <div id="masterTab" class="tab-content hidden space-y-6">
+      
+      <!-- SECTION: FUEL STOCK TANK SYSTEM (OPTION 1) -->
+      <div class="bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-800 text-white space-y-5">
+        <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="text-lg font-black text-amber-400 flex items-center gap-2">
+              <i class="fa-solid fa-gas-pump text-2xl"></i> คลังน้ำมันเชื้อเพลิงสำรอง (Fuel Stock Tank)
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">บริหารจัดการสต็อกน้ำมันสำหรับเครื่องจักรกลและการเบิกจ่าย Easy Pass</p>
+          </div>
+          <button id="btnOpenAddFuelModal" onclick="openAddFuelModal()" class="hidden bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle"></i> + บันทึกนำเข้าน้ำมัน
+          </button>
+        </div>
+
+        <!-- 3D CYLINDER FUEL TANK VISUAL DISPLAY -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-3">
+            <div class="cylinder-tank flex items-center justify-between px-6 z-10">
+              <div id="tankWave" class="liquid-wave" style="width: 0%;"></div>
+              <div class="relative z-20 flex items-center space-x-4">
+                <i class="fa-solid fa-oil-well text-amber-300 text-3xl"></i>
+                <div>
+                  <div class="text-[11px] font-bold uppercase tracking-wider text-amber-200/80">ปริมาณน้ำมันคงเหลือในคลัง</div>
+                  <div id="tankLitersText" class="text-3xl font-black text-white">0 / 1,000 ลิตร</div>
+                </div>
+              </div>
+              <div class="relative z-20 text-right">
+                <span id="tankPercentBadge" class="bg-slate-950/80 border border-amber-400/50 text-amber-400 text-sm font-black px-3.5 py-1.5 rounded-xl">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-1">
+              <div class="text-slate-400 font-bold">รับเข้าน้ำมันรวม</div>
+              <div id="tankTotalReceive" class="text-xl font-black text-emerald-400">0 ลิตร</div>
+            </div>
+            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-1">
+              <div class="text-slate-400 font-bold">ตัดใช้ออกรวม</div>
+              <div id="tankTotalDeduct" class="text-xl font-black text-rose-400">0 ลิตร</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUEL LEDGER HISTORY TABLE -->
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 space-y-3">
+          <h4 class="font-bold text-xs sm:text-sm text-slate-300 flex items-center justify-between">
+            <span><i class="fa-solid fa-list-numeric text-amber-400 mr-1.5"></i> ประวัติการนำเข้า - เบิกจ่ายน้ำมันเชื้อเพลิง</span>
+            <span class="text-[11px] font-normal text-slate-500">* บันทึกอัตโนมัติเมื่อตัดเงิน Easy Pass</span>
+          </h4>
+          <div id="fuelLedgerTableContainer" class="max-h-60 overflow-y-auto space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- SECTION: MASTER MACHINES -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -192,7 +285,7 @@
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">รูปภาพจะถูกจัดเก็บเข้าโฟลเดอร์ย่อย Machine_Images</p>
           </div>
-          <button onclick="toggleAddMachineForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+          <button id="btnAddMachineBtn" onclick="toggleAddMachineForm()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
             <i class="fa-solid fa-plus"></i> เพิ่มเครื่องจักรใหม่
           </button>
         </div>
@@ -247,6 +340,7 @@
         <div id="masterMachineGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
       </div>
 
+      <!-- SECTION: MASTER OPERATORS -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -255,7 +349,7 @@
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">รูปภาพจะถูกจัดเก็บเข้าโฟลเดอร์ย่อย Operator_Images</p>
           </div>
-          <button onclick="toggleAddOpForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+          <button id="btnAddOpBtn" onclick="toggleAddOpForm()" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
             <i class="fa-solid fa-user-plus"></i> เพิ่มช่างผู้ขับใหม่
           </button>
         </div>
@@ -285,12 +379,13 @@
         <div id="masterOperatorGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
+      <!-- SECTION: MASTER VILLAGES -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
         <div class="flex justify-between items-center flex-wrap gap-3 border-b border-slate-100 pb-4">
           <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-house-chimney text-emerald-600 text-xl"></i> จัดการหมู่บ้าน (28 หมู่บ้าน)
           </h3>
-          <button onclick="toggleAddVillageForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+          <button id="btnAddVillageBtn" onclick="toggleAddVillageForm()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
             <i class="fa-solid fa-plus"></i> เพิ่มหมู่บ้าน
           </button>
         </div>
@@ -311,7 +406,49 @@
     </div>
   </div>
 
-  <!-- MODAL 1: REQUEST FORM MODAL (ปรับให้ข้อ 5 และ 6 เป็น Optional) -->
+  <!-- MODAL: ADD / EDIT FUEL RECEIVE -->
+  <div id="addFuelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="fuelModalTitle" class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-gas-pump text-amber-500"></i> บันทึกนำเข้าน้ำมันเชื้อเพลิงเข้าคลัง
+        </h3>
+        <button onclick="closeAddFuelModal()" class="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
+      </div>
+
+      <input type="hidden" id="fuelRowIndex">
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">วันที่นำเข้า *</label>
+          <input type="date" id="fuelTransDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-amber-500 font-bold">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">จำนวนลิตรที่รับเข้า *</label>
+          <input type="number" step="0.1" id="fuelLiters" placeholder="เช่น 500" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-amber-600 font-extrabold text-base outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ราคาน้ำมัน ณ วันรับเข้า (บาท/ลิตร)</label>
+          <input type="number" step="0.01" id="fuelPrice" placeholder="เช่น 35.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-bold outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ลิงก์แนบใบเสร็จ / เอกสาร Google Drive</label>
+          <input type="url" id="fuelDocLink" placeholder="https://drive.google.com/file/d/..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">หมายเหตุ</label>
+          <input type="text" id="fuelRemark" placeholder="เช่น นำเข้าจากคลังปั๊ม ปตท." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none focus:border-amber-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeAddFuelModal()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition text-xs">ยกเลิก</button>
+        <button onclick="saveFuelReceive()" class="px-5 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-xl shadow-sm transition text-xs">บันทึกรับน้ำมัน</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: REQUEST FORM MODAL -->
   <div id="requestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -363,7 +500,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: LOGIN MODAL -->
+  <!-- MODAL 2: LOGIN MODAL (รองรับกด Enter) -->
   <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -801,7 +938,7 @@
   <script>
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzVTYcxjkn9s1N7LolnuNzIWGGOCRyUHDlCtO7oOL_FJ9Z2L4gQiEp6APb4FaBzNtku/exec';
 
-    let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [] };
+    let GLOBAL_DATA = { villages: [], machines: [], operators: [], pendingRequests: [], approvedJobs: [], finishedEasyPassJobs: [], fuelStock: { balance: 0, logs: [] } };
     let CURRENT_USER = { role: 'GUEST', name: 'Guest' };
     let CURRENT_SELECTED_REQUEST_ID = '';
     let fuelChartInstance = null;
@@ -966,6 +1103,7 @@
         renderSummaryJobs();
         renderMasterLists();
         renderAnalyticsDashboard();
+        renderFuelStockTank();
         updateRoleUI();
       } catch (err) {
         console.error('Error loading data:', err);
@@ -977,27 +1115,34 @@
              GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex) || {};
     }
 
+    /*
+     * 🛠️ สิทธิ์ผู้ใช้งาน: Guest สามารถดูได้ทุกเมนู 1-5 แต่จะถูกซ่อนปุ่มสร้าง/แก้ไข/ลบ
+     */
     function updateRoleUI() {
       const btnReq = document.getElementById('btnCreateRequest');
-      const btnSum = document.getElementById('btn-summaryTab');
-      const btnAna = document.getElementById('btn-analyticsTab');
-      const btnMas = document.getElementById('btn-masterTab');
+      const btnAddMachine = document.getElementById('btnAddMachineBtn');
+      const btnAddOp = document.getElementById('btnAddOpBtn');
+      const btnAddVillage = document.getElementById('btnAddVillageBtn');
+      const btnOpenAddFuel = document.getElementById('btnOpenAddFuelModal');
 
       if (CURRENT_USER.role === 'GUEST') {
         btnReq.classList.add('hidden');
-        btnSum.classList.add('hidden');
-        btnAna.classList.add('hidden');
-        btnMas.classList.add('hidden');
+        btnAddMachine.classList.add('hidden');
+        btnAddOp.classList.add('hidden');
+        btnAddVillage.classList.add('hidden');
+        btnOpenAddFuel.classList.add('hidden');
       } else if (CURRENT_USER.role === 'DATA_ENTRY') {
         btnReq.classList.remove('hidden');
-        btnSum.classList.add('hidden');
-        btnAna.classList.add('hidden');
-        btnMas.classList.add('hidden');
+        btnAddMachine.classList.add('hidden');
+        btnAddOp.classList.add('hidden');
+        btnAddVillage.classList.add('hidden');
+        btnOpenAddFuel.classList.add('hidden');
       } else if (CURRENT_USER.role === 'SUPER_ADMIN') {
         btnReq.classList.remove('hidden');
-        btnSum.classList.remove('hidden');
-        btnAna.classList.remove('hidden');
-        btnMas.classList.remove('hidden');
+        btnAddMachine.classList.remove('hidden');
+        btnAddOp.classList.remove('hidden');
+        btnAddVillage.classList.remove('hidden');
+        btnOpenAddFuel.classList.remove('hidden');
       }
 
       updateNotificationWidget();
@@ -1045,6 +1190,8 @@
         renderPendingTable();
         renderJobsTable();
         renderSummaryJobs();
+        renderMasterLists();
+        renderFuelStockTank();
         showToast('เข้าสู่ระบบสำเร็จ');
       } else {
         showToast(res ? res.message : 'เข้าสู่ระบบไม่สำเร็จ', 'error');
@@ -1061,6 +1208,9 @@
       updateRoleUI();
       renderPendingTable();
       renderJobsTable();
+      renderSummaryJobs();
+      renderMasterLists();
+      renderFuelStockTank();
       showToast('ออกจากระบบเรียบร้อยแล้ว');
     }
 
@@ -1119,6 +1269,122 @@
       } else {
         document.getElementById('pendingBadgeTab').classList.add('hidden');
         document.getElementById('notificationWidget').classList.add('hidden');
+      }
+    }
+
+    /*
+     * ⛽ OPTION 1: 3D CYLINDER FUEL STOCK TANK SYSTEM RENDERER
+     */
+    function renderFuelStockTank() {
+      const stock = GLOBAL_DATA.fuelStock || { balance: 0, maxCapacity: 1000, totalReceive: 0, totalDeduct: 0, logs: [] };
+      const bal = stock.balance || 0;
+      const maxCap = stock.maxCapacity || 1000;
+      const pct = Math.min(100, Math.max(0, Math.round((bal / maxCap) * 100)));
+
+      document.getElementById('navFuelBadge').innerText = `คลัง: ${bal.toLocaleString()} ลิตร`;
+      document.getElementById('tankLitersText').innerText = `${bal.toLocaleString()} / ${maxCap.toLocaleString()} ลิตร`;
+      document.getElementById('tankPercentBadge').innerText = `${pct}%`;
+      document.getElementById('tankWave').style.width = `${pct}%`;
+
+      document.getElementById('tankTotalReceive').innerText = `${(stock.totalReceive || 0).toLocaleString()} ลิตร`;
+      document.getElementById('tankTotalDeduct').innerText = `${(stock.totalDeduct || 0).toLocaleString()} ลิตร`;
+
+      // Render History Table
+      const container = document.getElementById('fuelLedgerTableContainer');
+      container.innerHTML = '';
+
+      if (!stock.logs || stock.logs.length === 0) {
+        container.innerHTML = `<div class="text-center text-slate-500 py-4 text-xs italic">ไม่มีรายการประวัตินำเข้า-เบิกจ่ายน้ำมัน</div>`;
+        return;
+      }
+
+      stock.logs.forEach(log => {
+        const isReceive = log.transType === 'RECEIVE';
+        const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
+
+        container.innerHTML += `
+          <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between text-xs text-slate-300">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full ${isReceive ? 'bg-emerald-400' : 'bg-rose-500'}"></span>
+              <div>
+                <span class="font-bold text-white">${formatThaiDate(log.transDate)}</span>
+                <span class="text-[11px] text-slate-400 block">${log.remark || '-'}</span>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="font-black ${isReceive ? 'text-emerald-400' : 'text-rose-400'} text-sm">
+                ${isReceive ? '+' : '-'}${log.liters.toLocaleString()} ลิตร
+              </span>
+              ${isSuperAdmin && isReceive ? `
+                <div class="flex items-center space-x-1">
+                  <button onclick="openEditFuelModal(${log.rowIndex})" class="text-amber-400 hover:text-amber-300 text-[11px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">✏️</button>
+                  <button onclick="deleteFuelStock(${log.rowIndex})" class="text-rose-400 hover:text-rose-300 text-[11px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">✕</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function openAddFuelModal() {
+      document.getElementById('fuelRowIndex').value = '';
+      document.getElementById('fuelModalTitle').innerText = 'บันทึกนำเข้าน้ำมันเชื้อเพลิงเข้าคลัง';
+      document.getElementById('fuelTransDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('fuelLiters').value = '';
+      document.getElementById('fuelPrice').value = '35.00';
+      document.getElementById('fuelDocLink').value = '';
+      document.getElementById('fuelRemark').value = 'นำเข้าน้ำมันเชื้อเพลิงเข้าคลัง';
+      document.getElementById('addFuelModal').classList.remove('hidden');
+    }
+
+    function closeAddFuelModal() { document.getElementById('addFuelModal').classList.add('hidden'); }
+
+    function openEditFuelModal(rowIndex) {
+      const stock = GLOBAL_DATA.fuelStock || { logs: [] };
+      const item = stock.logs.find(l => l.rowIndex === rowIndex);
+      if (!item) return;
+
+      document.getElementById('fuelRowIndex').value = rowIndex;
+      document.getElementById('fuelModalTitle').innerText = 'แก้ไขรายการนำเข้าน้ำมันเชื้อเพลิง';
+      document.getElementById('fuelTransDate').value = item.transDate || '';
+      document.getElementById('fuelLiters').value = item.liters || 0;
+      document.getElementById('fuelPrice').value = item.oilPricePerLiter || 35.00;
+      document.getElementById('fuelDocLink').value = item.docLink || '';
+      document.getElementById('fuelRemark').value = item.remark || '';
+      document.getElementById('addFuelModal').classList.remove('hidden');
+    }
+
+    async function saveFuelReceive() {
+      const rowIndex = document.getElementById('fuelRowIndex').value;
+      const liters = parseFloat(document.getElementById('fuelLiters').value) || 0;
+      if (liters <= 0) return showToast('กรุณาระบุจำนวนลิตรที่ถูกต้อง', 'error');
+
+      const data = {
+        rowIndex: parseInt(rowIndex),
+        transDate: document.getElementById('fuelTransDate').value,
+        liters: liters,
+        oilPricePerLiter: parseFloat(document.getElementById('fuelPrice').value) || 0,
+        docLink: document.getElementById('fuelDocLink').value,
+        remark: document.getElementById('fuelRemark').value,
+        recordedBy: CURRENT_USER.name
+      };
+
+      const action = rowIndex ? 'EDIT_RECEIVE' : 'ADD_RECEIVE';
+      const res = await callGAS('manageFuelStock', { action: action, data: data });
+      if (res && res.success) {
+        showToast(rowIndex ? 'แก้ไขรายการนำเข้าสำเร็จ' : 'นำเข้าน้ำมันเชื้อเพลิงเข้าคลังสำเร็จ');
+        closeAddFuelModal();
+        loadData();
+      }
+    }
+
+    async function deleteFuelStock(rowIndex) {
+      if (!confirm('ยืนยันลบรายการรับน้ำมันนี้?')) return;
+      const res = await callGAS('manageFuelStock', { action: 'DELETE_STOCK', data: { rowIndex: rowIndex } });
+      if (res && res.success) {
+        showToast('ลบรายการเรียบร้อยแล้ว');
+        loadData();
       }
     }
 
@@ -1844,6 +2110,7 @@
 
       GLOBAL_DATA.machines.forEach((m, idx) => {
         const numStr = String(idx + 1).padStart(2, '0');
+        const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
         
         let statusBg = 'bg-emerald-100 text-emerald-800 border-emerald-300';
         if (m.status === 'ใช้งานได้ชั่วคราว') statusBg = 'bg-amber-100 text-amber-800 border-amber-300';
@@ -1864,23 +2131,27 @@
             <div class="flex-grow space-y-1.5 w-full text-xs sm:text-sm">
               <div class="flex justify-between items-start flex-wrap gap-1">
                 <h4 class="font-extrabold text-slate-900 text-base">${m.name}</h4>
-                <div class="flex items-center space-x-1">
-                  <button onclick="openEditMachineModal(${m.rowIndex})" class="text-amber-700 hover:text-amber-900 font-bold text-xs bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition shadow-sm">
-                    <i class="fa-solid fa-pen-to-square mr-0.5"></i> แก้ไข
-                  </button>
-                  <button onclick="delMaster('MACHINE', ${m.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition">
-                    <i class="fa-solid fa-trash mr-0.5"></i> ลบ
-                  </button>
-                </div>
+                ${isSuperAdmin ? `
+                  <div class="flex items-center space-x-1">
+                    <button onclick="openEditMachineModal(${m.rowIndex})" class="text-amber-700 hover:text-amber-900 font-bold text-xs bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition shadow-sm">
+                      <i class="fa-solid fa-pen-to-square mr-0.5"></i> แก้ไข
+                    </button>
+                    <button onclick="delMaster('MACHINE', ${m.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition">
+                      <i class="fa-solid fa-trash mr-0.5"></i> ลบ
+                    </button>
+                  </div>
+                ` : ''}
               </div>
 
               <div class="flex items-center space-x-2 pt-0.5">
                 <span class="text-slate-500 text-xs font-semibold">สถานะ:</span>
-                <select onchange="quickUpdateMachineStatus(${m.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusBg} transition cursor-pointer">
-                  <option value="ใช้งานได้" ${m.status === 'ใช้งานได้' ? 'selected' : ''}>ใช้งานได้</option>
-                  <option value="ใช้งานได้ชั่วคราว" ${m.status === 'ใช้งานได้ชั่วคราว' ? 'selected' : ''}>ใช้งานได้ชั่วคราว</option>
-                  <option value="ชำรุด/ส่งซ่อม" ${m.status === 'ชำรุด/ส่งซ่อม' ? 'selected' : ''}>ชำรุด / ส่งซ่อม</option>
-                </select>
+                ${isSuperAdmin ? `
+                  <select onchange="quickUpdateMachineStatus(${m.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusBg} transition cursor-pointer">
+                    <option value="ใช้งานได้" ${m.status === 'ใช้งานได้' ? 'selected' : ''}>ใช้งานได้</option>
+                    <option value="ใช้งานได้ชั่วคราว" ${m.status === 'ใช้งานได้ชั่วคราว' ? 'selected' : ''}>ใช้งานได้ชั่วคราว</option>
+                    <option value="ชำรุด/ส่งซ่อม" ${m.status === 'ชำรุด/ส่งซ่อม' ? 'selected' : ''}>ชำรุด / ส่งซ่อม</option>
+                  </select>
+                ` : `<span class="text-xs font-bold border rounded-lg px-2 py-1 ${statusBg}">${m.status}</span>`}
               </div>
 
               <div class="text-slate-600 space-y-0.5 pt-1.5 border-t border-slate-100 text-xs">
@@ -1929,6 +2200,7 @@
       const placeholderAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=80';
 
       GLOBAL_DATA.operators.forEach(o => {
+        const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
         let statusColor = 'bg-blue-50 text-blue-700 border-blue-200';
         if (o.status === 'ติดภารกิจ' || o.status === 'ลาป่วย') statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
 
@@ -1945,14 +2217,16 @@
                     <p class="text-xs text-slate-500 font-semibold">${o.position || 'พนักงานขับเครื่องจักรกล'}</p>
                   </div>
                 </div>
-                <div class="flex items-center space-x-1 flex-shrink-0">
-                  <button onclick="openEditOpModal(${o.rowIndex})" class="text-blue-700 hover:text-blue-900 font-bold text-xs bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm" title="แก้ไข">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
-                  <button onclick="delMaster('OPERATOR', ${o.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg transition" title="ลบ">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </div>
+                ${isSuperAdmin ? `
+                  <div class="flex items-center space-x-1 flex-shrink-0">
+                    <button onclick="openEditOpModal(${o.rowIndex})" class="text-blue-700 hover:text-blue-900 font-bold text-xs bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm" title="แก้ไข">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button onclick="delMaster('OPERATOR', ${o.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg transition" title="ลบ">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                ` : ''}
               </div>
 
               <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 space-y-1 mt-3">
@@ -1967,11 +2241,13 @@
 
             <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
               <span class="text-xs text-slate-500 font-semibold">สถานะการทำงาน:</span>
-              <select onchange="quickUpdateOperatorStatus(${o.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusColor} cursor-pointer">
-                <option value="ปฏิบัติงานปกติ" ${o.status === 'ปฏิบัติงานปกติ' ? 'selected' : ''}>ปฏิบัติงานปกติ</option>
-                <option value="ติดภารกิจ" ${o.status === 'ติดภารกิจ' ? 'selected' : ''}>ติดภารกิจ</option>
-                <option value="ลาพักผ่อน/ป่วย" ${o.status === 'ลาพักผ่อน/ป่วย' ? 'selected' : ''}>ลาพักผ่อน/ป่วย</option>
-              </select>
+              ${isSuperAdmin ? `
+                <select onchange="quickUpdateOperatorStatus(${o.rowIndex}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 outline-none ${statusColor} cursor-pointer">
+                  <option value="ปฏิบัติงานปกติ" ${o.status === 'ปฏิบัติงานปกติ' ? 'selected' : ''}>ปฏิบัติงานปกติ</option>
+                  <option value="ติดภารกิจ" ${o.status === 'ติดภารกิจ' ? 'selected' : ''}>ติดภารกิจ</option>
+                  <option value="ลาพักผ่อน/ป่วย" ${o.status === 'ลาพักผ่อน/ป่วย' ? 'selected' : ''}>ลาพักผ่อน/ป่วย</option>
+                </select>
+              ` : `<span class="text-xs font-bold border rounded-lg px-2 py-1 ${statusColor}">${o.status}</span>`}
             </div>
           </div>
         `;
@@ -1981,15 +2257,18 @@
     function renderMasterVillages() {
       const grid = document.getElementById('masterVillageGrid');
       grid.innerHTML = '';
+      const isSuperAdmin = CURRENT_USER.role === 'SUPER_ADMIN';
 
       GLOBAL_DATA.villages.forEach(v => {
         grid.innerHTML += `
           <div class="bg-slate-50 hover:bg-emerald-50/50 border border-slate-200/80 rounded-xl p-3 text-xs font-bold text-slate-800 flex justify-between items-center transition shadow-sm">
             <span>หมู่ ${v.no} ${v.name}</span>
-            <div class="flex items-center space-x-1">
-              <button onclick="openEditVillageModal(${v.rowIndex})" class="text-emerald-700 hover:text-emerald-900 font-bold px-1.5 py-0.5 hover:bg-emerald-100 rounded transition" title="แก้ไข">✏️</button>
-              <button onclick="delMaster('VILLAGE', ${v.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 hover:bg-rose-100 rounded transition" title="ลบ">✕</button>
-            </div>
+            ${isSuperAdmin ? `
+              <div class="flex items-center space-x-1">
+                <button onclick="openEditVillageModal(${v.rowIndex})" class="text-emerald-700 hover:text-emerald-900 font-bold px-1.5 py-0.5 hover:bg-emerald-100 rounded transition" title="แก้ไข">✏️</button>
+                <button onclick="delMaster('VILLAGE', ${v.rowIndex})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 hover:bg-rose-100 rounded transition" title="ลบ">✕</button>
+              </div>
+            ` : ''}
           </div>
         `;
       });
