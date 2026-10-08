@@ -78,7 +78,7 @@
         </div>
         
         <div class="flex items-center space-x-2.5">
-          <!-- QUICK ACCESS AMBER GLOW FUEL BADGE (PROMINENT DESIGN) -->
+          <!-- QUICK ACCESS AMBER GLOW FUEL BADGE -->
           <button onclick="switchTab('masterTab')" class="bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-3.5 py-1.5 rounded-xl text-xs sm:text-sm flex items-center gap-1.5 transition glow-amber-badge border border-amber-300 transform active:scale-95">
             <i class="fa-solid fa-gas-pump text-slate-950 text-base"></i>
             <span id="navFuelBadge" class="tracking-wide">⛽ น้ำมันคงเหลือ: 0 ลิตร</span>
@@ -116,7 +116,7 @@
   <!-- MAIN CONTAINER -->
   <div class="w-full px-4 sm:px-6 py-5">
 
-    <!-- NAVIGATION TABS (Guest ดูได้ทุกเมนู 1-5) -->
+    <!-- NAVIGATION TABS -->
     <div class="flex flex-wrap gap-2 mb-5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-fit">
       <button onclick="switchTab('trackingTab')" id="btn-trackingTab" class="tab-btn bg-slate-900 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
         <i class="fa-solid fa-list-check text-amber-400"></i> 1. ติดตามแผนปฏิบัติงาน
@@ -230,7 +230,7 @@
       </div>
     </div>
 
-    <!-- TAB 5: MASTER MANAGEMENT & FUEL STOCK TANK -->
+    <!-- TAB 5: MASTER MANAGEMENT & FUEL STOCK TANK (RESTRUCTURED 50:50 LAYOUT) -->
     <div id="masterTab" class="tab-content hidden space-y-6">
       
       <!-- SECTION: FUEL STOCK TANK SYSTEM -->
@@ -242,50 +242,58 @@
             </h3>
             <p class="text-xs text-slate-400 mt-0.5">บริหารจัดการสต็อกน้ำมันสำหรับเครื่องจักรกลและการเบิกจ่าย Easy Pass</p>
           </div>
-          <!-- Allow DATA_ENTRY & SUPER_ADMIN to add fuel -->
           <button id="btnOpenAddFuelModal" onclick="openAddFuelModal()" class="hidden bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-1.5 active:scale-95">
             <i class="fa-solid fa-plus-circle"></i> + บันทึกนำเข้าน้ำมัน
           </button>
         </div>
 
-        <!-- 3D CYLINDER FUEL TANK VISUAL DISPLAY -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div class="lg:col-span-7 space-y-3">
-            <div class="cylinder-tank flex items-center justify-between px-6 z-10">
+        <!-- 50:50 GRID LAYOUT FOR TANK & HISTORY LEDGER -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          
+          <!-- LEFT SIDE (50%): 3D TANK + STAT CARDS BELOW -->
+          <div class="space-y-4 flex flex-col justify-between">
+            <!-- 3D CYLINDER FUEL TANK -->
+            <div class="cylinder-tank flex items-center justify-between px-6 z-10 relative">
               <div id="tankWave" class="liquid-wave" style="width: 0%;"></div>
-              <div class="relative z-20 flex items-center space-x-4">
+              
+              <div class="relative z-20 flex items-center space-x-3">
                 <i class="fa-solid fa-oil-well text-amber-300 text-3xl"></i>
                 <div>
                   <div class="text-[11px] font-bold uppercase tracking-wider text-amber-200/80">ปริมาณน้ำมันคงเหลือในคลัง</div>
-                  <div id="tankLitersText" class="text-3xl font-black text-white">0 / 1,000 ลิตร</div>
+                  <div id="tankLitersText" class="text-2xl sm:text-3xl font-black text-white drop-shadow-md">0 / 1,000 ลิตร</div>
                 </div>
               </div>
-              <div class="relative z-20 text-right">
-                <span id="tankPercentBadge" class="bg-slate-950/80 border border-amber-400/50 text-amber-400 text-sm font-black px-3.5 py-1.5 rounded-xl">0%</span>
+
+              <!-- BADGE PERCENT CENTERING OVERLAY -->
+              <div class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                <span id="tankPercentBadge" class="bg-slate-950/80 backdrop-blur-md border border-amber-400/60 text-amber-400 text-sm font-black px-4 py-1.5 rounded-full shadow-lg pointer-events-auto">0%</span>
+              </div>
+            </div>
+
+            <!-- 2 MINI STAT CARDS BELOW TANK -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-1">
+                <div class="text-slate-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-arrow-down-long text-emerald-400"></i> รับเข้าน้ำมันรวม</div>
+                <div id="tankTotalReceive" class="text-lg sm:text-xl font-black text-emerald-400">0 ลิตร</div>
+              </div>
+              <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-1">
+                <div class="text-slate-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-long text-rose-400"></i> ตัดใช้ออกรวม</div>
+                <div id="tankTotalDeduct" class="text-lg sm:text-xl font-black text-rose-400">0 ลิตร</div>
               </div>
             </div>
           </div>
 
-          <div class="lg:col-span-5 grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-1">
-              <div class="text-slate-400 font-bold">รับเข้าน้ำมันรวม</div>
-              <div id="tankTotalReceive" class="text-xl font-black text-emerald-400">0 ลิตร</div>
-            </div>
-            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-1">
-              <div class="text-slate-400 font-bold">ตัดใช้ออกรวม</div>
-              <div id="tankTotalDeduct" class="text-xl font-black text-rose-400">0 ลิตร</div>
-            </div>
+          <!-- RIGHT SIDE (50%): FUEL HISTORY LEDGER (LATEST ON TOP & SCROLLABLE) -->
+          <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 space-y-3 flex flex-col justify-between h-full">
+            <h4 class="font-bold text-xs sm:text-sm text-slate-300 flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <span><i class="fa-solid fa-list-numeric text-amber-400 mr-1.5"></i> ประวัติการนำเข้า - เบิกจ่ายน้ำมันเชื้อเพลิง</span>
+              <span class="text-[10px] font-normal text-slate-500">* รายการล่าสุดอยู่บนสุด</span>
+            </h4>
+            
+            <!-- SCROLLABLE CONTAINER -->
+            <div id="fuelLedgerTableContainer" class="max-h-[160px] sm:max-h-[175px] overflow-y-auto space-y-2 pr-1 flex-grow"></div>
           </div>
-        </div>
 
-        <!-- FUEL LEDGER HISTORY TABLE (LATEST ON TOP & SCROLLABLE CONTAINER) -->
-        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 space-y-3">
-          <h4 class="font-bold text-xs sm:text-sm text-slate-300 flex items-center justify-between">
-            <span><i class="fa-solid fa-list-numeric text-amber-400 mr-1.5"></i> ประวัติการนำเข้า - เบิกจ่ายน้ำมันเชื้อเพลิง</span>
-            <span class="text-[11px] font-normal text-slate-500">* แสดงรายการล่าสุดอยู่บนสุด</span>
-          </h4>
-          <!-- SCROLLABLE CONTAINER LOCK HEIGHT MAX-H-64 -->
-          <div id="fuelLedgerTableContainer" class="max-h-64 overflow-y-auto space-y-2 pr-1"></div>
         </div>
       </div>
 
@@ -419,7 +427,7 @@
     </div>
   </div>
 
-  <!-- MODAL: ADD / EDIT FUEL RECEIVE (REMOVED GOOGLE DRIVE LINK FIELD) -->
+  <!-- MODAL: ADD / EDIT FUEL RECEIVE -->
   <div id="addFuelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 border border-slate-100">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -509,7 +517,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: LOGIN MODAL (INSTANT ENTER SUPPORT) -->
+  <!-- MODAL 2: LOGIN MODAL -->
   <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 border border-slate-100">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -1124,12 +1132,6 @@
              GLOBAL_DATA.approvedJobs.find(j => j.rowIndex === rowIndex) || {};
     }
 
-    /*
-     * 🛠️ สิทธิ์ผู้ใช้งาน:
-     * - GUEST: ดูได้ทุกเมนู (1-5) ซ่อนปุ่ม Action ทั้งหมด
-     * - DATA_ENTRY: บันทึกคำขอ + อัปเดตงาน + บันทึกนำเข้าน้ำมันเชื้อเพลิงเข้าคลังได้
-     * - SUPER_ADMIN: สิทธิ์เต็ม จัดการ Master Data และอนุมัติ/ลบ
-     */
     function updateRoleUI() {
       const btnReq = document.getElementById('btnCreateRequest');
       const btnAddMachine = document.getElementById('btnAddMachineBtn');
@@ -1145,7 +1147,7 @@
         btnOpenAddFuel.classList.add('hidden');
       } else if (CURRENT_USER.role === 'DATA_ENTRY') {
         btnReq.classList.remove('hidden');
-        btnOpenAddFuel.classList.remove('hidden'); // DATA_ENTRY สามารถบันทึกนำเข้าน้ำมันเข้าคลังได้ด้วยตนเอง
+        btnOpenAddFuel.classList.remove('hidden');
         btnAddMachine.classList.add('hidden');
         btnAddOp.classList.add('hidden');
         btnAddVillage.classList.add('hidden');
@@ -1307,7 +1309,7 @@
       container.innerHTML = '';
 
       if (!stock.logs || stock.logs.length === 0) {
-        container.innerHTML = `<div class="text-center text-slate-500 py-4 text-xs italic">ไม่มีรายการประวัตินำเข้า-เบิกจ่ายน้ำมัน</div>`;
+        container.innerHTML = `<div class="text-center text-slate-500 py-6 text-xs italic"><i class="fa-solid fa-receipt text-slate-600 text-2xl mb-1 block"></i>ไม่มีรายการประวัตินำเข้า-เบิกจ่ายน้ำมัน</div>`;
         return;
       }
 
@@ -1317,15 +1319,15 @@
 
         container.innerHTML += `
           <div class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between text-xs text-slate-300 hover:border-slate-700 transition">
-            <div class="flex items-center space-x-2.5">
-              <span class="w-2.5 h-2.5 rounded-full ${isReceive ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'bg-rose-500 shadow-sm shadow-rose-500'}"></span>
-              <div>
-                <span class="font-bold text-white">${formatThaiDate(log.transDate)}</span>
-                <span class="text-[11px] text-slate-400 block">${log.remark || '-'}</span>
+            <div class="flex items-center space-x-2.5 truncate">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 ${isReceive ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'bg-rose-500 shadow-sm shadow-rose-500'}"></span>
+              <div class="truncate">
+                <span class="font-bold text-white block truncate">${formatThaiDate(log.transDate)}</span>
+                <span class="text-[11px] text-slate-400 block truncate">${log.remark || '-'}</span>
               </div>
             </div>
-            <div class="flex items-center space-x-3">
-              <span class="font-black ${isReceive ? 'text-emerald-400' : 'text-rose-400'} text-sm">
+            <div class="flex items-center space-x-2.5 flex-shrink-0">
+              <span class="font-black ${isReceive ? 'text-emerald-400' : 'text-rose-400'} text-xs sm:text-sm">
                 ${isReceive ? '+' : '-'}${log.liters.toLocaleString()} ลิตร
               </span>
               ${canEditStock && isReceive ? `
