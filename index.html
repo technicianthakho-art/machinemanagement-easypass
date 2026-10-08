@@ -681,6 +681,36 @@
 
   <!-- APPLICATION JAVASCRIPT CORE -->
   <script>
+    // -------------------------------------------------------------
+    // 🛑 ดักจับกรณีเปิดทดสอบไฟล์แบบ Local Browser (ป้องกัน google is not defined)
+    // -------------------------------------------------------------
+    if (typeof google === 'undefined') {
+      window.google = {
+        script: {
+          run: {
+            withSuccessHandler: function(cb) { this._success = cb; return this; },
+            withFailureHandler: function(err) { this._error = err; return this; },
+            doPost: function(params) {
+              console.warn("⚠️ รันในระบบ Local (เปิดไฟล์โดยตรง): ใช้ Mock Data ชั่วคราว");
+              if (this._success) {
+                setTimeout(() => {
+                  this._success({
+                    villages: [],
+                    machines: [],
+                    operators: [],
+                    pendingRequests: [],
+                    approvedJobs: [],
+                    finishedEasyPassJobs: [],
+                    fuelStock: { balance: 0, maxCapacity: 1000, totalReceive: 0, totalDeduct: 0, logs: [] }
+                  });
+                }, 100);
+              }
+            }
+          }
+        }
+      };
+    }
+
     // GLOBAL STATE APP VARIABLES
     let state = {
       userRole: 'GUEST', // 'GUEST', 'DATA_ENTRY', 'SUPER_ADMIN'
