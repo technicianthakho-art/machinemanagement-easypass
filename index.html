@@ -936,11 +936,14 @@
     let fuelChartInstance = null;
     let villageChartInstance = null;
 
+   /**
+     * [Quick Fix Mode] Client API Fetcher พร้อม Safe HTTP Response Guard
+     */
     async function callGAS(action, payload = {}) {
       try {
         if (!GAS_API_URL || GAS_API_URL.trim() === '') {
           showToast('กรุณาระบุ GAS_API_URL ในไฟล์ index.html ให้ถูกต้อง', 'error');
-          return;
+          return null;
         }
 
         const response = await fetch(GAS_API_URL, {
@@ -949,10 +952,25 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: action, payload: payload })
         });
-        return await response.json();
+
+        if (!response.ok) {
+          throw new Error(`HTTP Error Status: ${response.status}`);
+        }
+
+        const resData = await response.json();
+        
+        // ตรวจสอบว่ามี Exception ส่งมาจาก Server หรือไม่
+        if (resData && resData.error) {
+          showToast(resData.message, 'error');
+          console.error('Backend Exception:', resData.message);
+          return null;
+        }
+
+        return resData;
+
       } catch (error) {
-        console.error('GAS API Error:', error);
-        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบเซิร์ฟเวอร์', 'error');
+        console.error('GAS Connection/Fetch Error:', error);
+        showToast('การเชื่อมต่อเซิร์ฟเวอร์ล้มเหลว (เช็ค URL หรือ Deployment Version)', 'error');
         throw error;
       }
     }
